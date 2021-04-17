@@ -3,33 +3,42 @@ import cv2
 import scipy.ndimage
 import numpy as np
 import sys
+import time
 import picamera
 import picamera.array
 
-
-class PID:
-    def __init__(P, I, D):
-        self.P = P
-        self.I = I
-        self.D = D
-
-    def update(target, current):
-        return self.
-
-
-    def reset(self):
-        self.I = 0
-
-
-    def debugToFile(self):
-        with open("PIDvars.txt")
- 
 debug = True
 bl_wh = False
 if "--prod" in sys.argv[1:]:
     debug = False
 elif "--bl_wh" in sys.argv[1:]:
     bl_wh = True
+
+class PID:
+    def __init__(self, P, I, D):
+        self.P = P
+        self.I = I
+        self.D = D
+        self.iAccumulator = 0
+        self.prevError = 0
+        self.fileOutput = open("PIDvars.csv")
+        self.first = True
+
+    def update(self, target, current):
+        error = current-target
+        self.iAccumulator += error
+        if self.first: 
+            self.iAccumulator = 0
+            self.prevError = error
+            self.first = False
+        output = (self.P*error)+(self.iAccumulator*self.I)+((error-self.prevError)*self.D)
+        self.prevError = error
+        if debug:
+            print(f"Equation: {output},I Accumulator: {self.iAccumulator}, P: {self.P*error}, I: {self.I*self.iAccumulator}, D: {self.D*(error-self.prevError)}", file=self.PIDvars)
+        return output
+
+    def reset(self):
+        self.first = True
 
 def imshow_debug(image_to_show, title):
     if debug:
@@ -39,13 +48,27 @@ def custom_round(number):
     return int(round(number))
 
 image = None
+currentPID = PID(1, 0, 0)
 
 GPIO.setmode(GPIO.BCM)  
 
-pinlistOut = [17]
+pinlistOut = [17, 26, 13, 6, 5]
 pinlistIn = []
+lighting_pin = 17
+motor1_pin = 26
+motor2_pin = 13
+motor3_pin = 6
+motor4_pin = 5
 GPIO.setup(pinlistOut, GPIO.OUT)
-GPIO.output(17, 1)
+# GPIO.output(lighting_pin, 1)
+GPIO.output(motor1_pin, 1)
+time.sleep(5)
+GPIO.output(motor2_pin, 1)
+time.sleep(5)
+GPIO.output(motor3_pin, 1)
+time.sleep(5)
+GPIO.output(motor4_pin, 1)
+time.sleep(5)
 
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
@@ -56,7 +79,6 @@ with picamera.PiCamera() as camera:
                 while image is None:
                     camera.capture(stream, 'bgr', use_video_port=True)
                     image = stream.array
-                    # _, image = current_camera.read()
 
                 grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 _, grayscale_image = cv2.threshold(grayscale_image, 100, 255, cv2.THRESH_BINARY_INV)
@@ -82,14 +104,15 @@ with picamera.PiCamera() as camera:
                     debugging = cv2.circle(grayscale_image, (custom_round(center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
                 imshow_debug("Video Stream with Circle", debugging)
                 
-                if cv2.waitKey(1) & 0xFF == ord('q'): 
-                    break
                 stream.seek(0)
                 stream.truncate()
+
+                if cv2.waitKey(1) & 0xFF == ord('q'): 
+                    break
             except KeyboardInterrupt:
                 break
 
 
 cv2.destroyAllWindows()
-GPIO.output(17, 0)
+# GPIO.output(lighting_pin, 0)
 GPIO.cleanup()
