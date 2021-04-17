@@ -41,7 +41,7 @@ with picamera.PiCamera() as camera:
                     # _, image = current_camera.read()
 
                 grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                _, grayscale_image = cv2.threshold(grayscale_image, 115, 255, cv2.THRESH_BINARY_INV)
+                _, grayscale_image = cv2.threshold(grayscale_image, 110, 255, cv2.THRESH_BINARY_INV)
 
                 height, width = grayscale_image.shape
 
