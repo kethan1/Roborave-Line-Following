@@ -1,70 +1,52 @@
 import cv2
 import scipy.ndimage
-import numpy
+import numpy as np
 import sys
 
 debug = True
 
-def imshow_ripoff(image_to_show, title):
+def imshow_debug(image_to_show, title):
     if debug:
         cv2.imshow(image_to_show, title)
 
-imagevar = "images/nothing.jpg"
+def custom_round(number): 
+    return int(round(number))
 
-v1 = cv2.VideoCapture(0)
+current_camera = cv2.VideoCapture(0)
 image = None
 
 while True:
-    image = None
-    while image is None:
-        success, image = v1.read()
+    try:
+        image, cropped_image = None, None
+        while image is None:
+            _, image = current_camera.read()
 
-    # test_image1 = cv2.imread(imagevar, cv2.IMREAD_GRAYSCALE)
-    # test_image_color = cv2.imread(imagevar, cv2.IMREAD_COLOR)
+        grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        _, grayscale_image = cv2.threshold(grayscale_image, 115, 255, cv2.THRESH_BINARY_INV)
 
-    test_image1 = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) 
-    test_image_color = image
-    _, test_image1 = cv2.threshold(test_image1, 115, 255, cv2.THRESH_BINARY_INV)
+        height, width = grayscale_image.shape
 
+        if np.sum(grayscale_image) < 50*255:
+            print("Line Lost")
+            sys.exit()
 
-    height, width = test_image1.shape
-
-    if numpy.sum(test_image1) < 50*255:
-        print("lost line")
-        sys.exit()
-
-    img1 = None
-
-    for i in range(0, height, 20):
-        img1 = test_image1[i:i+20,0:-1]
-        if numpy.sum(img1) > 20*255:
-            if i+20 < height:
-                print(numpy.sum(img1))
-                center_of_mass = scipy.ndimage.center_of_mass(img1)
-                print(center_of_mass)
+        for current_y in range(0, height, 20):
+            cropped_image = grayscale_image[current_y:current_y+20,0:-1]
+            if np.sum(cropped_image) > 20*255 and current_y+20 < height:
+                center_of_mass_y, center_of_mass_x = scipy.ndimage.center_of_mass(cropped_image)
                 break
-    if img1 is None:
-        print("line lost")
-        sys.exit()
+        if cropped_image is None:
+            print("Line Lost")
+            sys.exit()
 
-    debugging = cv2.circle(test_image_color, (int(round(center_of_mass[1])), i+int(round(center_of_mass[0]))), 5, (0,0, 255), 1)
-    imshow_ripoff("test", debugging)
-    key = cv2.waitKey(1)
-    
-    if key == ord("q"):
+        debugging = cv2.circle(image, (custom_round(center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
+        imshow_debug("Video Stream with Circle", debugging)
+        
+        if cv2.waitKey(1) & 0xFF == ord('q'): 
+            break
+    except KeyboardInterrupt:
         break
 
 
-# bottom_20_rows = test_image1[0:20,0:-1]
-# bottom_20_rows2 = test_image_color[0:20,0:-1]
-
-
-# center_of_mass = scipy.ndimage.center_of_mass(bottom_20_rows)
-
-# debugging = cv2.circle(bottom_20_rows2, (int(round(center_of_mass[1])), 0), 5, (0,0, 255), 1)
-
-# imshow_ripoff("test", debugging)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
-
-v1.release()
+cv2.destroyAllWindows()
+current_camera.release()
