@@ -7,6 +7,11 @@ import picamera
 import picamera.array
 
 debug = True
+bl_wh = False
+if "--prod" in sys.argv[1:]:
+    debug = False
+elif "--bl_wh" in sys.argv[1:]:
+    bl_wh = True
 
 def imshow_debug(image_to_show, title):
     if debug:
@@ -53,7 +58,10 @@ with picamera.PiCamera() as camera:
                     print("Line Lost")
                     sys.exit()
 
-                debugging = cv2.circle(image, (custom_round(center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
+                if not bl_wh:
+                    debugging = cv2.circle(image, (custom_round(center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
+                else:
+                    debugging = cv2.circle(grayscale_image, (custom_round(center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
                 imshow_debug("Video Stream with Circle", debugging)
                 
                 if cv2.waitKey(1) & 0xFF == ord('q'): 
