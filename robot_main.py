@@ -6,6 +6,24 @@ import sys
 import picamera
 import picamera.array
 
+
+class PID:
+    def __init__(P, I, D):
+        self.P = P
+        self.I = I
+        self.D = D
+
+    def update(target, current):
+        return self.
+
+
+    def reset(self):
+        self.I = 0
+
+
+    def debugToFile(self):
+        with open("PIDvars.txt")
+ 
 debug = True
 bl_wh = False
 if "--prod" in sys.argv[1:]:
