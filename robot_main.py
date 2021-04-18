@@ -1,3 +1,4 @@
+from numpy.core.overrides import ARRAY_FUNCTION_ENABLED
 import RPi.GPIO as GPIO
 import cv2
 import scipy.ndimage
@@ -40,6 +41,9 @@ class PID:
     def reset(self):
         self.first = True
 
+    def close(self):
+        self.fileOutput.close()
+
 def imshow_debug(image_to_show, title):
     if debug:
         cv2.imshow(image_to_show, title)
@@ -52,23 +56,45 @@ currentPID = PID(1, 0, 0)
 
 GPIO.setmode(GPIO.BCM)  
 
-pinlistOut = [17, 26, 13, 6, 5]
+pinlistOut = [17, 26, 13, 6, 5, 12, 16]
 pinlistIn = []
 lighting_pin = 17
-motor1_pin = 26
-motor2_pin = 13
-motor3_pin = 6
-motor4_pin = 5
+# 26 - rb
+# 6 - lf
+# 13 - lb
+# 5 - rf 
+IN1 = 26
+IN2 = 13
+IN3 = 6
+IN4 = 5
+ENA = 16
+ENB = 12
 GPIO.setup(pinlistOut, GPIO.OUT)
 # GPIO.output(lighting_pin, 1)
-GPIO.output(motor1_pin, 1)
-time.sleep(5)
-GPIO.output(motor2_pin, 1)
-time.sleep(5)
-GPIO.output(motor3_pin, 1)
-time.sleep(5)
-GPIO.output(motor4_pin, 1)
-time.sleep(5)
+ENA_PWM = GPIO.PWM(ENA, 2000)
+ENB_PWM = GPIO.PWM(ENB, 2000)
+
+def motor_move(which, direction, speed):
+    if which == "left":
+        if direction == "forward":
+            GPIO.output(6, 1)
+            ENA_PWM.start(speed)
+        elif direction == "backward":
+            GPIO.output(13, 1)
+            ENA_PWM.start(speed) 
+    elif which == "right":
+        if direction == "forward":
+            GPIO.output(IN4, 1)
+            ENB_PWM.start(speed) 
+        elif direction == "backward":
+            GPIO.output(IN1, 1)
+            ENB_PWM.start(speed) 
+
+def reset_motors():
+    ENA_PWM.stop()
+    ENB_PWM.stop() 
+    GPIO.output([26,13,6,5,16,12], 0)
+
 
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
@@ -98,6 +124,8 @@ with picamera.PiCamera() as camera:
                     print("Line Lost")
                     sys.exit()
 
+                print(currentPID.update(width/2, center_of_mass_x))
+
                 if not bl_wh:
                     debugging = cv2.circle(image, (custom_round(center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
                 else:
@@ -116,3 +144,4 @@ with picamera.PiCamera() as camera:
 cv2.destroyAllWindows()
 # GPIO.output(lighting_pin, 0)
 GPIO.cleanup()
+currentPID.close()
