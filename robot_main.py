@@ -25,7 +25,7 @@ class PID:
         self.D = D
         self.iAccumulator = 0
         self.prevError = 0
-        self.fileOutput = open("PIDvars.csv")
+        self.fileOutput = open("PIDvars.csv", "w")
         self.writePointer = csv.writer(self.fileOutput, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         self.first = True
 
