@@ -1,19 +1,22 @@
-from numpy.core.overrides import ARRAY_FUNCTION_ENABLED
-import RPi.GPIO as GPIO
 import cv2
 import scipy.ndimage
 import numpy as np
-import sys
-import time
+import RPi.GPIO as GPIO
 import picamera
 import picamera.array
+import sys
+import time
+import csv
 
 debug = True
 bl_wh = False
+P_VALUE = 1
 if "--prod" in sys.argv[1:]:
     debug = False
-elif "--bl_wh" in sys.argv[1:]:
+if "--bl_wh" in sys.argv[1:]:
     bl_wh = True
+if "--P" in sys.argv[1:]:
+    P_VALUE = sys.argv[sys.argv.index("--P")+1]
 
 class PID:
     def __init__(self, P, I, D):
@@ -23,6 +26,7 @@ class PID:
         self.iAccumulator = 0
         self.prevError = 0
         self.fileOutput = open("PIDvars.csv")
+        self.writePointer = csv.writer(self.fileOutput, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         self.first = True
 
     def update(self, target, current):
@@ -33,9 +37,18 @@ class PID:
             self.prevError = error
             self.first = False
         output = (self.P*error)+(self.iAccumulator*self.I)+((error-self.prevError)*self.D)
-        self.prevError = error
         if debug:
-            print(f"Equation: {output},I Accumulator: {self.iAccumulator}, P: {self.P*error}, I: {self.I*self.iAccumulator}, D: {self.D*(error-self.prevError)}", file=self.PIDvars)
+            self.writePointer.writerow([
+                f"Equation: {output}", 
+                f"I Accumulator: {self.iAccumulator}", 
+                f"Error: {error}",
+                f"Prev Error: {self.prevError}",
+                f"P: {self.P*error}", 
+                f"I: {self.I*self.iAccumulator}", 
+                f"D: {self.D*(error-self.prevError)}"
+            ])
+        self.prevError = error
+        
         return output
 
     def reset(self):
@@ -52,49 +65,49 @@ def custom_round(number):
     return int(round(number))
 
 image = None
-currentPID = PID(1, 0, 0)
+currentPID = PID(P=P_VALUE, I=0, D=0)
 
 GPIO.setmode(GPIO.BCM)  
 
 pinlistOut = [17, 26, 13, 6, 5, 12, 16]
 pinlistIn = []
 lighting_pin = 17
-# 26 - rb
-# 6 - lf
-# 13 - lb
-# 5 - rf 
-IN1 = 26
+# 6 (IN1) - left forward
+# 13 (IN2) - left backward
+# 26 (IN3) - right backward
+# 5 (IN4) - right forward
+IN1 = 6
 IN2 = 13
-IN3 = 6
+IN3 = 26
 IN4 = 5
 ENA = 16
 ENB = 12
 GPIO.setup(pinlistOut, GPIO.OUT)
+GPIO.output(pinlistOut, 0)
 # GPIO.output(lighting_pin, 1)
 ENA_PWM = GPIO.PWM(ENA, 2000)
 ENB_PWM = GPIO.PWM(ENB, 2000)
 
-def motor_move(which, direction, speed):
-    if which == "left":
+def motor_move(side, direction, speed):
+    if side == "left":
         if direction == "forward":
-            GPIO.output(6, 1)
+            GPIO.output(IN1, 1)
             ENA_PWM.start(speed)
         elif direction == "backward":
-            GPIO.output(13, 1)
+            GPIO.output(IN2, 1)
             ENA_PWM.start(speed) 
-    elif which == "right":
+    elif side == "right":
         if direction == "forward":
-            GPIO.output(IN4, 1)
+            GPIO.output(IN3, 1)
             ENB_PWM.start(speed) 
         elif direction == "backward":
-            GPIO.output(IN1, 1)
+            GPIO.output(IN4, 1)
             ENB_PWM.start(speed) 
 
 def reset_motors():
     ENA_PWM.stop()
     ENB_PWM.stop() 
     GPIO.output([26,13,6,5,16,12], 0)
-
 
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
