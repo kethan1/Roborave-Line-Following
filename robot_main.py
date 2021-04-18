@@ -72,17 +72,18 @@ GPIO.setmode(GPIO.BCM)
 pinlistOut = [17, 26, 13, 6, 5, 12, 16]
 pinlistIn = []
 lighting_pin = 17
-# 6 (IN1) - left forward
-# 13 (IN2) - left backward
+# 13 (IN1) - left forward
+# 6 (IN2) - left backward
 # 26 (IN3) - right backward
 # 5 (IN4) - right forward
-IN1 = 6
-IN2 = 13
+IN1 = 13
+IN2 = 6
 IN3 = 26
 IN4 = 5
 ENA = 16
 ENB = 12
 GPIO.setup(pinlistOut, GPIO.OUT)
+GPIO.setup(pinlistIn, GPIO.IN)
 GPIO.output(pinlistOut, 0)
 # GPIO.output(lighting_pin, 1)
 ENA_PWM = GPIO.PWM(ENA, 2000)
