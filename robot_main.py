@@ -102,12 +102,35 @@ def motor_move(side, direction, speed):
             ENB_PWM.start(speed) 
         elif direction == "backward":
             GPIO.output(IN4, 1)
-            ENB_PWM.start(speed) 
+            ENB_PWM.start(speed)
 
 def reset_motors():
     ENA_PWM.stop()
     ENB_PWM.stop() 
     GPIO.output([26,13,6,5,16,12], 0)
+
+def motor_move_interface(equation_output):
+    motor_left = 50
+    motor_right = 50
+    # positive - right faster
+    # negative - left faster
+    if equation_output > 50:
+        equation_output = 50
+    motor_left-=equation_output
+    motor_right+=equation_output
+    reset_motors()
+    if motor_left != 0:
+        if motor_left < 0:
+            motor_move("left", "backward", abs(motor_left))
+        else:
+            if motor_left < 0:
+                motor_move("left", "forward", abs(motor_left))
+    if motor_right != 0:
+        if motor_right < 0:
+            motor_move("right", "backward", abs(motor_right))
+        else:
+            if motor_right < 0:
+                motor_move("right", "forward", abs(motor_right))
 
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
@@ -137,7 +160,10 @@ with picamera.PiCamera() as camera:
                     print("Line Lost")
                     sys.exit()
 
-                print(currentPID.update(width/2, center_of_mass_x))
+                pid_equation_output = currentPID.update(width/2, center_of_mass_x)
+
+                print(pid_equation_output)
+                motor_move_interface(pid_equation_output)
 
                 if not bl_wh:
                     debugging = cv2.circle(image, (custom_round(center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
