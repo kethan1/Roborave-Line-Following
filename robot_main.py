@@ -117,6 +117,8 @@ def motor_move_interface(equation_output):
     # negative - left faster
     if equation_output > 50:
         equation_output = 50
+    elif equation_output < -150:
+        equation_output = -150
     motor_left-=equation_output
     motor_right+=equation_output
     reset_motors()
