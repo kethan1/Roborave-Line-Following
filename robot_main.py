@@ -17,7 +17,7 @@ if "--prod" in sys.argv[1:]:
 if "--bl_wh" in sys.argv[1:]:
     bl_wh = True
 if "--P" in sys.argv[1:]:
-    P_VALUE = sys.argv[sys.argv.index("--P")+1]
+    P_VALUE = int(sys.argv[sys.argv.index("--P")+1])
 
 
 class PID:
