@@ -175,8 +175,8 @@ with picamera.PiCamera() as camera:
                     sys.exit()
 
                 for current_y in range(height, -1, -20):
+                    cropped_image = grayscale_image[current_y:current_y-20, 0:-1]
                     if np.sum(cropped_image) > 20*255 and current_y-20 >= 0:
-                        cropped_image = grayscale_image[current_y:current_y-20, 0:-1]
                         center_of_mass_y, center_of_mass_x = scipy.ndimage.center_of_mass(
                             cropped_image)
                         break
