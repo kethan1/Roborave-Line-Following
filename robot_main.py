@@ -131,8 +131,15 @@ def motor_move_interface(equation_output):
     motor_left -= equation_output
     motor_right += equation_output
     reset_motors()
+    if motor_left > 100:
+        motor_left = 100
+    if motor_right > 100:
+        motor_right = 100
+    if motor_left < -100:
+        motor_left = -100
+    if motor_right < -100:
+        motor_right = -100
     if motor_left != 0:
-        print(motor_left)
         if motor_left < 0:
             motor_move("left", "backward", abs(motor_left))
         else:
