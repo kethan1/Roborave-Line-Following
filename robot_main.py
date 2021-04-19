@@ -96,23 +96,28 @@ GPIO.output(pinlistOut, 0)
 # GPIO.output(lighting_pin, 1)
 ENA_PWM = GPIO.PWM(ENA, 2000)
 ENB_PWM = GPIO.PWM(ENB, 2000)
+BASE_SPEED = 30
+LEFT = 0
+RIGHT = 1
 
+ENA_PWM.start(0)
+ENB_PWM.start(0)
 
 def motor_move(side, direction, speed):
-    if side == "left":
+    if side == LEFT:
         if direction == "forward":
             GPIO.output(IN1, 1)
-            ENA_PWM.start(speed)
+            ENA_PWM.ChangeDutyCycle(speed)
         elif direction == "backward":
             GPIO.output(IN2, 1)
-            ENA_PWM.start(speed)
-    elif side == "right":
+            ENA_PWM.ChangeDutyCycle(speed)
+    elif side == RIGHT:
         if direction == "forward":
             GPIO.output(IN3, 1)
-            ENB_PWM.start(speed)
+            ENB_PWM.ChangeDutyCycle(speed)
         elif direction == "backward":
             GPIO.output(IN4, 1)
-            ENB_PWM.start(speed)
+            ENB_PWM.ChangeDutyCycle(speed)
 
 
 def reset_motors():
@@ -122,8 +127,8 @@ def reset_motors():
 
 
 def motor_move_interface(equation_output):
-    motor_left = 50
-    motor_right = 50
+    motor_left = BASE_SPEED
+    motor_right = BASE_SPEED
     # positive - right faster
     # negative - left faster
     # if equation_output > 50:
@@ -132,7 +137,7 @@ def motor_move_interface(equation_output):
     #     equation_output = -150
     motor_left -= equation_output
     motor_right += equation_output
-    reset_motors()
+    # reset_motors()
     if motor_left > 100:
         motor_left = 100
     if motor_right > 100:
@@ -144,14 +149,14 @@ def motor_move_interface(equation_output):
         motor_right = -100
     if motor_left != 0:
         if motor_left < 0:
-            motor_move("left", "backward", abs(motor_left))
+            motor_move(LEFT, "backward", abs(motor_left))
         else:
-            motor_move("left", "forward", abs(motor_left))
+            motor_move(LEFT, "forward", abs(motor_left))
     if motor_right != 0:
         if motor_right < 0:
-            motor_move("right", "backward", abs(motor_right))
+            motor_move(RIGHT, "backward", abs(motor_right))
         else:
-            motor_move("right", "forward", abs(motor_right))
+            motor_move(RIGHT, "forward", abs(motor_right))
 
 
 with picamera.PiCamera() as camera:
