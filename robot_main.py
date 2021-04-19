@@ -1,12 +1,13 @@
-import cv2
-import scipy.ndimage
-import numpy as np
-import RPi.GPIO as GPIO
-import picamera
-import picamera.array
+import csv
 import sys
 import time
-import csv
+
+import cv2
+import numpy as np
+import picamera
+import picamera.array
+import RPi.GPIO as GPIO
+import scipy.ndimage
 
 debug = True
 bl_wh = False
@@ -125,10 +126,10 @@ def motor_move_interface(equation_output):
     motor_right = 50
     # positive - right faster
     # negative - left faster
-    if equation_output > 50:
-        equation_output = 50
-    elif equation_output < -150:
-        equation_output = -150
+    # if equation_output > 50:
+    #     equation_output = 50
+    # elif equation_output < -150:
+    #     equation_output = -150
     motor_left -= equation_output
     motor_right += equation_output
     reset_motors()
@@ -136,6 +137,7 @@ def motor_move_interface(equation_output):
         motor_left = 100
     if motor_right > 100:
         motor_right = 100
+    
     if motor_left < -100:
         motor_left = -100
     if motor_right < -100:
@@ -172,9 +174,9 @@ with picamera.PiCamera() as camera:
                     print("Line Lost")
                     sys.exit()
 
-                for current_y in range(0, height, 20):
-                    cropped_image = grayscale_image[current_y:current_y+20, 0:-1]
-                    if np.sum(cropped_image) > 20*255 and current_y+20 < height:
+                for current_y in range(height, -1, -20):
+                    if np.sum(cropped_image) > 20*255 and current_y-20 >= 0:
+                        cropped_image = grayscale_image[current_y:current_y-20, 0:-1]
                         center_of_mass_y, center_of_mass_x = scipy.ndimage.center_of_mass(
                             cropped_image)
                         break
