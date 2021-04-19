@@ -38,8 +38,9 @@ class PID:
             self.iAccumulator = 0
             self.prevError = error
             self.first = False
-        output = (self.P*error)+(self.iAccumulator*self.I) + \
-            ((error-self.prevError)*self.D)
+        # output = (self.P*error)+(self.iAccumulator*self.I) + \
+        #     ((error-self.prevError)*self.D)
+        output = (self.P*error)
         if debug:
             self.writePointer.writerow([
                 f"Equation: {output}",
@@ -163,7 +164,7 @@ with picamera.PiCamera() as camera:
 
                 grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 _, grayscale_image = cv2.threshold(
-                    grayscale_image, 80, 255, cv2.THRESH_BINARY_INV)
+                    grayscale_image, 65, 255, cv2.THRESH_BINARY_INV)
 
                 height, width = grayscale_image.shape
 
