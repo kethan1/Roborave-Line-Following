@@ -163,7 +163,7 @@ with picamera.PiCamera() as camera:
                 while image is None:
                     camera.capture(stream, 'bgr', use_video_port=True)
                     image = stream.array
-
+                image = cv2.rotate(image, cv2.cv2.ROTATE_180)
                 grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 _, grayscale_image = cv2.threshold(
                     grayscale_image, 65, 255, cv2.THRESH_BINARY_INV)
@@ -174,9 +174,9 @@ with picamera.PiCamera() as camera:
                     print("Line Lost")
                     sys.exit()
 
-                for current_y in range(height, -1, -20):
-                    cropped_image = grayscale_image[current_y:current_y-20, 0:-1]
-                    if np.sum(cropped_image) > 20*255 and current_y-20 >= 0:
+                for current_y in range(0, height, 20):
+                    cropped_image = grayscale_image[current_y:current_y+20, 0:-1]
+                    if np.sum(cropped_image) > 20*255 and current_y+20 < height:
                         center_of_mass_y, center_of_mass_x = scipy.ndimage.center_of_mass(
                             cropped_image)
                         break
