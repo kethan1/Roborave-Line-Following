@@ -84,10 +84,10 @@ lighting_pin = 17
 # 6 (IN2) - left backward
 # 26 (IN3) - right backward
 # 5 (IN4) - right forward
-IN1 = 13
-IN2 = 6
+IN1 = 6
+IN2 = 5
 IN3 = 26
-IN4 = 5
+IN4 = 13
 ENA = 16
 ENB = 12
 GPIO.setup(pinlistOut, GPIO.OUT)
