@@ -1,7 +1,6 @@
 import csv
 import sys
 import time
-
 import cv2
 import numpy as np
 import picamera
@@ -39,19 +38,18 @@ class PID:
             self.iAccumulator = 0
             self.prevError = error
             self.first = False
-        # output = (self.P*error)+(self.iAccumulator*self.I) + \
-        #     ((error-self.prevError)*self.D)
-        output = (self.P*error)
-        if debug:
-            self.writePointer.writerow([
-                f"Equation: {output}",
-                f"I Accumulator: {self.iAccumulator}",
-                f"Error: {error}",
-                f"Prev Error: {self.prevError}",
-                f"P: {self.P*error}",
-                f"I: {self.I*self.iAccumulator}",
-                f"D: {self.D*(error-self.prevError)}"
-            ])
+        output = (self.P*error)+(self.iAccumulator*self.I) + \
+            ((error-self.prevError)*self.D)
+        # if debug:
+        #     self.writePointer.writerow([
+        #         f"Equation: {output}",
+        #         f"I Accumulator: {self.iAccumulator}",
+        #         f"Error: {error}",
+        #         f"Prev Error: {self.prevError}",
+        #         f"P: {self.P*error}",
+        #         f"I: {self.I*self.iAccumulator}",
+        #         f"D: {self.D*(error-self.prevError)}"
+        #     ])
         self.prevError = error
 
         return output
@@ -77,13 +75,12 @@ currentPID = PID(P=P_VALUE, I=0, D=0)
 
 GPIO.setmode(GPIO.BCM)
 
-pinlistOut = [17, 26, 13, 6, 5, 12, 16]
+pinlistOut = [26, 13, 6, 5, 12, 16]
 pinlistIn = []
-lighting_pin = 17
-# 13 (IN1) - left forward
-# 6 (IN2) - left backward
-# 26 (IN3) - right backward
-# 5 (IN4) - right forward
+# IN1 - left forward
+# IN2 - left backward
+# IN3 - right forward
+# IN4 - right backward
 IN1 = 6
 IN2 = 5
 IN3 = 26
@@ -93,37 +90,44 @@ ENB = 12
 GPIO.setup(pinlistOut, GPIO.OUT)
 GPIO.setup(pinlistIn, GPIO.IN)
 GPIO.output(pinlistOut, 0)
-# GPIO.output(lighting_pin, 1)
 ENA_PWM = GPIO.PWM(ENA, 2000)
 ENB_PWM = GPIO.PWM(ENB, 2000)
-BASE_SPEED = 30
+BASE_SPEED = 50
 LEFT = 0
 RIGHT = 1
+FORWARD = 0
+BACKWARD = 1
 
-ENA_PWM.start(0)
-ENB_PWM.start(0)
+ENA_PWM.start(1)
+ENB_PWM.start(1)
+
 
 def motor_move(side, direction, speed):
     if side == LEFT:
-        if direction == "forward":
-            GPIO.output(IN1, 1)
+        if direction == FORWARD:
+            GPIO.output(IN1, GPIO.HIGH)
             ENA_PWM.ChangeDutyCycle(speed)
-        elif direction == "backward":
-            GPIO.output(IN2, 1)
+        elif direction == BACKWARD:
+            print("pin", IN2)
+            GPIO.output(IN2, GPIO.HIGH)
             ENA_PWM.ChangeDutyCycle(speed)
     elif side == RIGHT:
-        if direction == "forward":
-            GPIO.output(IN3, 1)
+        if direction == FORWARD:
+            GPIO.output(IN3, GPIO.HIGH)
             ENB_PWM.ChangeDutyCycle(speed)
-        elif direction == "backward":
-            GPIO.output(IN4, 1)
+        elif direction == BACKWARD:
+            GPIO.output(IN4, GPIO.HIGH)
             ENB_PWM.ChangeDutyCycle(speed)
 
 
-def reset_motors():
+def reset_all_motors():
     ENA_PWM.stop()
     ENB_PWM.stop()
-    GPIO.output([26, 13, 6, 5, 16, 12], 0)
+    GPIO.output([26, 13, 6, 5], GPIO.LOW)
+
+
+def stop_motor(pin):
+    GPIO.output(pin, GPIO.LOW)
 
 
 def motor_move_interface(equation_output):
@@ -135,28 +139,41 @@ def motor_move_interface(equation_output):
     #     equation_output = 50
     # elif equation_output < -150:
     #     equation_output = -150
-    motor_left -= equation_output
-    motor_right += equation_output
-    # reset_motors()
+    motor_left += equation_output
+    motor_right -= equation_output
+
     if motor_left > 100:
         motor_left = 100
+    elif motor_left < -100:
+        motor_left = -100
+    
     if motor_right > 100:
         motor_right = 100
-    
-    if motor_left < -100:
-        motor_left = -100
-    if motor_right < -100:
+    elif motor_right < -100:
         motor_right = -100
-    if motor_left != 0:
-        if motor_left < 0:
-            motor_move(LEFT, "backward", abs(motor_left))
-        else:
-            motor_move(LEFT, "forward", abs(motor_left))
-    if motor_right != 0:
-        if motor_right < 0:
-            motor_move(RIGHT, "backward", abs(motor_right))
-        else:
-            motor_move(RIGHT, "forward", abs(motor_right))
+        
+    print(f"Motor Speeds, Left: {motor_left}, Right: {motor_right}")
+
+    # motor_left = motor_left
+    # motor_right = motor_right
+
+    if motor_left > 0:
+        print("Left, Forward")
+        stop_motor(IN2)
+        motor_move(LEFT, FORWARD, abs(motor_left))
+    elif motor_left < 0:
+        print("Left, Backward")
+        stop_motor(IN1)
+        motor_move(LEFT, BACKWARD, abs(motor_left))
+
+    if motor_right > 0:
+        print("Right, Forward")
+        stop_motor(IN4)
+        motor_move(RIGHT, FORWARD, abs(motor_right))
+    elif motor_right < 0:
+        print("Right, Backward")
+        stop_motor(IN3)
+        motor_move(RIGHT, BACKWARD, abs(motor_right))
 
 
 with picamera.PiCamera() as camera:
@@ -200,7 +217,8 @@ with picamera.PiCamera() as camera:
                         center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
                 else:
                     debugging = cv2.circle(grayscale_image, (custom_round(
-                        center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
+                        center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (255, 255, 255), 10)
+                debugging = cv2.rotate(debugging, cv2.cv2.ROTATE_180)
                 imshow_debug("Video Stream with Circle", debugging)
 
                 stream.seek(0)
@@ -212,7 +230,7 @@ with picamera.PiCamera() as camera:
                 break
 
 
+print("Ending Program")
 cv2.destroyAllWindows()
-# GPIO.output(lighting_pin, 0)
 GPIO.cleanup()
 currentPID.close()
