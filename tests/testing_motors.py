@@ -7,6 +7,11 @@ GPIO.setmode(GPIO.BCM)
 pins = [13, 5, 6, 26]
 EN_PINs = [16, 12]
 
+# 5 - left backward
+# 26 - left forward
+# 13 - right forward
+# 6 - right backward
+
 GPIO.setup(pins+EN_PINs, GPIO.OUT)
 GPIO.output(EN_PINs, 1)
 try:
@@ -18,6 +23,3 @@ try:
 except KeyboardInterrupt:
     pass
 GPIO.cleanup()
-
-
-
