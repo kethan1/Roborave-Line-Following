@@ -1,6 +1,7 @@
-import csv
 import sys
 import time
+import json
+
 import cv2
 import numpy as np
 import picamera
@@ -8,57 +9,28 @@ import picamera.array
 import RPi.GPIO as GPIO
 import scipy.ndimage
 
-debug = True
+from PID import PID
+
+with open("robot_config.json") as robot_config_file:
+    robot_config = json.load(robot_config_file)
+
+debug = bool(robot_config["debug"])
 bl_wh = False
-P_VALUE = 1
+P_VALUE = robot_config["P"]
+I_VALUE = robot_config["I"]
+D_VALUE = robot_config["D"]
 if "--prod" in sys.argv[1:]:
     debug = False
 if "--bl_wh" in sys.argv[1:]:
     bl_wh = True
 if "--P" in sys.argv[1:]:
     P_VALUE = float(sys.argv[sys.argv.index("--P")+1])
+if "--I" in sys.argv[1:]:
+    I_VALUE = float(sys.argv[sys.argv.index("--I")+1])
+if "--D" in sys.argv[1:]:
+    D_VALUE = float(sys.argv[sys.argv.index("--D")+1])
 
 
-class PID:
-    def __init__(self, P, I, D):
-        self.P = P
-        self.I = I
-        self.D = D
-        self.iAccumulator = 0
-        self.prevError = 0
-        self.fileOutput = open("PIDvars.csv", "w")
-        self.writePointer = csv.writer(
-            self.fileOutput, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        self.first = True
-
-    def update(self, target, current):
-        error = current-target
-        self.iAccumulator += error
-        if self.first:
-            self.iAccumulator = 0
-            self.prevError = error
-            self.first = False
-        output = (self.P*error)+(self.iAccumulator*self.I) + \
-            ((error-self.prevError)*self.D)
-        # if debug:
-        #     self.writePointer.writerow([
-        #         f"Equation: {output}",
-        #         f"I Accumulator: {self.iAccumulator}",
-        #         f"Error: {error}",
-        #         f"Prev Error: {self.prevError}",
-        #         f"P: {self.P*error}",
-        #         f"I: {self.I*self.iAccumulator}",
-        #         f"D: {self.D*(error-self.prevError)}"
-        #     ])
-        self.prevError = error
-
-        return output
-
-    def reset(self):
-        self.first = True
-
-    def close(self):
-        self.fileOutput.close()
 
 
 def imshow_debug(image_to_show, title):
@@ -71,7 +43,7 @@ def custom_round(number):
 
 
 image = None
-currentPID = PID(P=P_VALUE, I=0, D=0)
+currentPID = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug)
 
 GPIO.setmode(GPIO.BCM)
 
@@ -81,17 +53,19 @@ pinlistIn = []
 # IN2 - left backward
 # IN3 - right forward
 # IN4 - right backward
-IN1 = 6
-IN2 = 5
-IN3 = 26
-IN4 = 13
-ENA = 16
-ENB = 12
+# ENA - left speed
+# ENB - right speed
+IN1 = robot_config["IN1"]
+IN2 = robot_config["IN2"]
+IN3 = robot_config["IN3"]
+IN4 = robot_config["IN4"]
+ENA = robot_config["ENA"]
+ENB = robot_config["ENB"]
 GPIO.setup(pinlistOut, GPIO.OUT)
 GPIO.setup(pinlistIn, GPIO.IN)
 GPIO.output(pinlistOut, 0)
-ENA_PWM = GPIO.PWM(ENA, 2000)
-ENB_PWM = GPIO.PWM(ENB, 2000)
+ENA_PWM = GPIO.PWM(ENA, 200)
+ENB_PWM = GPIO.PWM(ENB, 200)
 BASE_SPEED = 50
 LEFT = 0
 RIGHT = 1
@@ -101,44 +75,42 @@ BACKWARD = 1
 ENA_PWM.start(1)
 ENB_PWM.start(1)
 
-
 def motor_move(side, direction, speed):
+    print(f"Side: {side}, Direction: {direction}, Speed: {speed}")
     if side == LEFT:
         if direction == FORWARD:
+            GPIO.output(IN2, GPIO.LOW)
             GPIO.output(IN1, GPIO.HIGH)
             ENA_PWM.ChangeDutyCycle(speed)
         elif direction == BACKWARD:
             print("pin", IN2)
+            GPIO.output(IN1, GPIO.LOW)
             GPIO.output(IN2, GPIO.HIGH)
             ENA_PWM.ChangeDutyCycle(speed)
     elif side == RIGHT:
         if direction == FORWARD:
+            GPIO.output(IN4, GPIO.LOW)
             GPIO.output(IN3, GPIO.HIGH)
             ENB_PWM.ChangeDutyCycle(speed)
         elif direction == BACKWARD:
+            GPIO.output(IN3, GPIO.LOW)
             GPIO.output(IN4, GPIO.HIGH)
             ENB_PWM.ChangeDutyCycle(speed)
 
 
-def reset_all_motors():
-    ENA_PWM.stop()
-    ENB_PWM.stop()
-    GPIO.output([26, 13, 6, 5], GPIO.LOW)
-
-
-def stop_motor(pin):
-    GPIO.output(pin, GPIO.LOW)
+# def reset_all_motors():
+#     ENA_PWM.stop()
+#     ENB_PWM.stop()
+#     GPIO.output([26, 13, 6, 5], GPIO.LOW)
 
 
 def motor_move_interface(equation_output):
     motor_left = BASE_SPEED
     motor_right = BASE_SPEED
-    # positive - right faster
-    # negative - left faster
-    # if equation_output > 50:
-    #     equation_output = 50
-    # elif equation_output < -150:
-    #     equation_output = -150
+
+    # positive - left faster
+    # negative - right faster
+
     motor_left += equation_output
     motor_right -= equation_output
 
@@ -154,25 +126,18 @@ def motor_move_interface(equation_output):
         
     print(f"Motor Speeds, Left: {motor_left}, Right: {motor_right}")
 
-    # motor_left = motor_left
-    # motor_right = motor_right
-
     if motor_left > 0:
         print("Left, Forward")
-        stop_motor(IN2)
         motor_move(LEFT, FORWARD, abs(motor_left))
     elif motor_left < 0:
         print("Left, Backward")
-        stop_motor(IN1)
         motor_move(LEFT, BACKWARD, abs(motor_left))
 
     if motor_right > 0:
         print("Right, Forward")
-        stop_motor(IN4)
         motor_move(RIGHT, FORWARD, abs(motor_right))
     elif motor_right < 0:
         print("Right, Backward")
-        stop_motor(IN3)
         motor_move(RIGHT, BACKWARD, abs(motor_right))
 
 
@@ -194,6 +159,9 @@ with picamera.PiCamera() as camera:
 
                 if np.sum(grayscale_image) < 50*255:
                     print("Line Lost")
+                    GPIO.cleanup()
+                    currentPID.close()
+                    print(2)
                     sys.exit()
 
                 for current_y in range(0, height, 20):
@@ -204,6 +172,9 @@ with picamera.PiCamera() as camera:
                         break
                 if cropped_image is None:
                     print("Line Lost")
+                    GPIO.cleanup()
+                    currentPID.close()
+                    print(1)
                     sys.exit()
 
                 pid_equation_output = currentPID.update(
