@@ -5,8 +5,10 @@
     "IN4": 6,
     "ENA": 16,
     "ENB": 12,
-    "P": 1,
+    "P": 0.8,
     "I": 0,
     "D": 0,
+    "GRAYSCALE_THRESHOLD": 57,
+    "BASE_SPEED": 50,
     "debug": "True"
 }

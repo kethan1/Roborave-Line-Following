@@ -19,6 +19,7 @@ bl_wh = False
 P_VALUE = robot_config["P"]
 I_VALUE = robot_config["I"]
 D_VALUE = robot_config["D"]
+GRAYSCALE_THRESHOLD = robot_config["GRAYSCALE_THRESHOLD"]
 if "--prod" in sys.argv[1:]:
     debug = False
 if "--bl_wh" in sys.argv[1:]:
@@ -66,7 +67,7 @@ GPIO.setup(pinlistIn, GPIO.IN)
 GPIO.output(pinlistOut, 0)
 ENA_PWM = GPIO.PWM(ENA, 200)
 ENB_PWM = GPIO.PWM(ENB, 200)
-BASE_SPEED = 50
+BASE_SPEED = robot_config["BASE_SPEED"]
 LEFT = 0
 RIGHT = 1
 FORWARD = 0
@@ -111,8 +112,10 @@ def motor_move_interface(equation_output):
     # positive - left faster
     # negative - right faster
 
-    motor_left += equation_output
-    motor_right -= equation_output
+    motor_left -= equation_output
+    motor_right += equation_output
+
+    print(equation_output)
 
     if motor_left > 100:
         motor_left = 100
@@ -151,9 +154,11 @@ with picamera.PiCamera() as camera:
                     camera.capture(stream, 'bgr', use_video_port=True)
                     image = stream.array
                 image = cv2.rotate(image, cv2.cv2.ROTATE_180)
-                grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                # grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 _, grayscale_image = cv2.threshold(
-                    grayscale_image, 65, 255, cv2.THRESH_BINARY_INV)
+                    cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), GRAYSCALE_THRESHOLD, \
+                    255, cv2.THRESH_BINARY_INV
+                )
 
                 height, width = grayscale_image.shape
 
@@ -187,11 +192,12 @@ with picamera.PiCamera() as camera:
                     debugging = cv2.circle(image, (custom_round(
                         center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
                 else:
-                    debugging = cv2.circle(grayscale_image, (custom_round(
-                        center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (255, 255, 255), 10)
+                    grayBGR = cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR)
+                    debugging = cv2.circle(grayBGR, (custom_round(
+                        center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
                 debugging = cv2.rotate(debugging, cv2.cv2.ROTATE_180)
                 imshow_debug("Video Stream with Circle", debugging)
-
+    
                 stream.seek(0)
                 stream.truncate()
 
