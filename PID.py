@@ -1,7 +1,7 @@
 import csv
 
 class PID:
-    def __init__(self, P, I, D, debug=True):
+    def __init__(self, P=1, I=0, D=0, debug=True):
         self.P = P
         self.I = I
         self.D = D
@@ -10,7 +10,7 @@ class PID:
         self.prevError = 0
         self.fileOutput = open("PIDvars.csv", "w")
         self.writePointer = csv.writer(
-            self.fileOutput, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            self.fileOutput, quotechar='"', quoting=csv.QUOTE_MINIMAL)
         self.writePointer.writerow(["Equation", "I Accumulator", "Error", "Prev Error", "P", "I", "D", "P With Error", "I with I Accumulator", "D with Prev Error"])
         self.first = True
 
