@@ -1,9 +1,5 @@
 # Roborave
 
-## LINE DETECTOR
+## Line Follower
 
-**Project Goal: Line detection using picamera and loading balls into designated area**
-
-
-
-
+**Project Goal: Detect and followed a line using the picamera and dump balls into designated area. **
