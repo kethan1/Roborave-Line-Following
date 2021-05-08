@@ -1,6 +1,7 @@
 import sys
 import time
 import json
+import timeit
 
 import cv2
 import numpy as np
@@ -117,15 +118,15 @@ def motor_move_interface(equation_output):
 
     print(equation_output)
 
-    if motor_left > 100:
-        motor_left = 100
-    elif motor_left < -100:
-        motor_left = -100
+    if motor_left > robot_config["MAX_SPEED"]:
+        motor_left = robot_config["MAX_SPEED"]
+    elif motor_left < -robot_config["MAX_SPEED"]:
+        motor_left = -robot_config["MAX_SPEED"]
     
-    if motor_right > 100:
-        motor_right = 100
-    elif motor_right < -100:
-        motor_right = -100
+    if motor_right > robot_config["MAX_SPEED"]:
+        motor_right = robot_config["MAX_SPEED"]
+    elif motor_right < -robot_config["MAX_SPEED"]:
+        motor_right = -robot_config["MAX_SPEED"]
         
     print(f"Motor Speeds, Left: {motor_left}, Right: {motor_right}")
 
@@ -149,9 +150,10 @@ with picamera.PiCamera() as camera:
         camera.resolution = (320, 240)
         while True:
             try:
+                start_time = timeit.default_timer()
                 image, cropped_image = None, None
                 while image is None:
-                    camera.capture(stream, 'bgr', use_video_port=True)
+                    camera.capture(stream, "bgr", use_video_port=True)
                     image = stream.array
                 image = cv2.rotate(image, cv2.cv2.ROTATE_180)
                 # grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -201,10 +203,13 @@ with picamera.PiCamera() as camera:
                 stream.seek(0)
                 stream.truncate()
 
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
+                end_time = timeit.default_timer()
+                print(f"Frame Time: {(end_time-start_time)}")
             except KeyboardInterrupt:
                 break
+        
 
 
 print("Ending Program")
