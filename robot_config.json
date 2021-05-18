@@ -7,8 +7,8 @@
     "ENB": 12,
     "P": 0.6,
     "I": 0,
-    "D": 1.6,
-    "GRAYSCALE_THRESHOLD": 57,
+    "D": 0.85,
+    "GRAYSCALE_THRESHOLD": 50,
     "BASE_SPEED": 50,
     "MAX_SPEED": 100,
     "debug": "True"
