@@ -12,7 +12,7 @@ import scipy.ndimage
 
 import Libraries.ThunderBorg3 as ThunderBorg
 from PID import PID
-from Encoder import Encoder
+import Encoder_CPP.encoder as Encoder
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
 # TB.i2cAddress = 0x15          # Uncomment and change the value if you have changed the board address
