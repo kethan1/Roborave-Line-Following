@@ -6,6 +6,22 @@ import Libraries.ThunderBorg3 as ThunderBorg
 import sys
 import time
 
+motor_left = 1
+motor_right = 1
+try:
+    motor_left = int(sys.argv[1])
+except ValueError:
+    print("Invalid Argument")
+except IndexError:
+    pass
+
+try:
+    motor_right = int(sys.argv[2])
+except ValueError:
+    print("Invalid Argument")
+except IndexError:
+    pass
+
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
 #TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
 TB.Init()                       # Set the board up (checks the board is connected)
@@ -24,10 +40,10 @@ if not TB.foundChip:
 TB.SetBatteryMonitoringLimits(7.5, 9)
 
 try:
-    TB.SetMotor1(1)
+    TB.SetMotor1(motor_left)
+    TB.SetMotor2(motor_right)
     while True:
         time.sleep(1)
-    # TB.SetMotor1(1)
 except:
     pass
 TB.MotorsOff()
