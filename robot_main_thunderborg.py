@@ -62,6 +62,8 @@ def custom_round(number):
 
 image = None
 currentPID = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug)
+pid_testing = PID(P=0.5, I=0, D=0)
+maintain_speed_PID = PID(P = -1, I = -0.07, D = 0.9)
 
 GPIO.setmode(GPIO.BCM)
 
@@ -95,7 +97,7 @@ def motor_move(side, speed):
 #     GPIO.output([26, 13, 6, 5], GPIO.LOW)
 
 
-def motor_move_interface(equation_output):
+def motor_move_interface(equation_output, compare = None):
     motor_left = BASE_SPEED
     motor_right = BASE_SPEED
 
@@ -132,11 +134,11 @@ def motor_move_interface(equation_output):
     elif motor_right < 0:
         print("Right, Backward")
 
-print(1)
+prevSteps = 0
+prevTime = 0
+
 with picamera.PiCamera() as camera:
-    print(2)
     with picamera.array.PiRGBArray(camera) as stream:
-        print(3)
         camera.resolution = (320, 240)
         while True:
             try:
@@ -177,7 +179,13 @@ with picamera.PiCamera() as camera:
                     width/2, center_of_mass_x)
 
                 print(pid_equation_output)
-                motor_move_interface(pid_equation_output)
+                cTime = time.time()
+                steps = encoder.getSteps()
+                speed = ((steps - prevSteps) / (cTime - prevTime) / 3591.84) * 3
+                prevTime = cTime
+                prevSteps = steps
+
+                motor_move_interface(pid_equation_output, maintain_speed_PID.update(pid_testing.update(width/2, center_of_mass_x), speed))
 
                 if not bl_wh:
                     debugging = cv2.circle(image, (custom_round(
@@ -195,7 +203,7 @@ with picamera.PiCamera() as camera:
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
                 # end_time = timeit.default_timer()
-                # print(f"Frame Time: {(end_time-start_time)}")
+                # print(f"Frame Time: {1/(end_time-start_time)}")
             except KeyboardInterrupt:
                 break
         
