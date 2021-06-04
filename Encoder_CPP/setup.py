@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 
 encoder_module = Extension("_encoder",
     sources = ["encoder_wrap.cxx", "Encoder.cpp"],

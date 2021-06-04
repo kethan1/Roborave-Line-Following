@@ -4,6 +4,9 @@
 
 void init() {
     gpioInitialise();
+    int cfg = gpioCfgGetInternals();
+    cfg |= PI_CFG_NOSIGHANDLER;  // (1<<10)
+    gpioCfgSetInternals(cfg);
 }
 
 void Encoder::callback(int gpio, int level, uint32_t tick, void *user) {
@@ -13,19 +16,25 @@ void Encoder::callback(int gpio, int level, uint32_t tick, void *user) {
 
     Encoder *self = (Encoder *) user;
 
+    // double elapsed = (tick - self->prevTicks) / 1'000'000.0;
+    // self->speed = 1/(elapsed * 4.0);
+    // self->prevTicks = tick;
+
     if (gpio == self->gpioA) self->levA = level; else self->levB = level;
 
     if (gpio != self->lastGpio) { /* debounce */
         self->lastGpio = gpio;
 
         if ((gpio == self->gpioA) && (level == 1)) {
-            if (self->levB) self->steps++;
-            // std::cout << self->steps << std::endl;
+            if (self->levB) {
+                self->steps++;
+                self->direction = 0;
+            }
         }
         else if ((gpio == self->gpioB) && (level == 1)) {
             if (self->levA) { 
                 self->steps--;
-                std::cout << "BadBad" << std::endl;
+                self->direction = 1;
             }
         }
     }
@@ -34,13 +43,14 @@ void Encoder::callback(int gpio, int level, uint32_t tick, void *user) {
 Encoder::Encoder(int aGpioA, int aGpioB) {
     gpioA = aGpioA;
     gpioB = aGpioB;
+    direction = 0;
 
     levA = 0;
     levB = 0;
 
     steps = 0;
-
     lastGpio = -1;
+    prevTicks = 0;
 
     gpioSetMode(aGpioA, PI_INPUT);
     gpioSetMode(aGpioB, PI_INPUT);
@@ -56,18 +66,22 @@ Encoder::Encoder(int aGpioA, int aGpioB) {
     gpioSetAlertFuncEx(aGpioB, callback, this);
 }
 
-void Encoder::cancel_callbacks(void) {
+void Encoder::cancelCallbacks(void) {
     gpioSetAlertFuncEx(gpioA, NULL, this);
     gpioSetAlertFuncEx(gpioB, NULL, this);
 }
 
 Encoder::~Encoder() {
-    cancel_callbacks();
+    cancelCallbacks();
     gpioTerminate();
 }
 
 int Encoder::getSteps() {
     return steps;
+}
+
+int Encoder::getDirection() {
+    return direction;
 }
 
 void Encoder::resetSteps() {

@@ -1,26 +1,15 @@
-# GPIO 25 - Encoder A for Motor1
-# GPIO 22 - Encoder B for Motor1
-# GPIO 24 - Encoder A for Motor2
-# GPIO 23 - Encoder B for Motor2
+from PID import PID
+from Encoder_CPP.encoder import Encoder, init as initialize
 import Libraries.ThunderBorg3 as ThunderBorg
-import sys
 import time
+import sys
 
-motor_left = 0.84
-motor_right = 0.84
-try:
-    motor_left = int(sys.argv[1])
-except ValueError:
-    print("Invalid Argument")
-except IndexError:
-    pass
+initialize()
 
-try:
-    motor_right = int(sys.argv[2])
-except ValueError:
-    print("Invalid Argument")
-except IndexError:
-    pass
+# Right motor
+encoder = Encoder(23, 24)
+#              0      -0.15       0.5
+pid1 = PID(P = -1, I = -0.07, D = 0.9)
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
 #TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
@@ -37,13 +26,20 @@ if not TB.foundChip:
         print('TB.i2cAddress = 0x%02X' % (boards[0]))
     sys.exit()
 
-TB.SetBatteryMonitoringLimits(7.5, 9)
-
+prevTime = 0
+prevSteps = 0
 try:
-    TB.SetMotor1(motor_left)
-    TB.SetMotor2(motor_right)
     while True:
-        time.sleep(1)
-except:
-    pass
-TB.MotorsOff()
+        cTime = time.time()
+        steps = encoder.getSteps()
+        speed = ((steps - prevSteps) / (cTime - prevTime) / 3591.84) * 3
+        prevTime = cTime
+        prevSteps = steps
+        time.sleep(0.01)
+        print(f"Speed: {speed}")
+        TB.SetMotor1(pid1.update(1, speed))
+except KeyboardInterrupt:
+    pid1.close()
+    print(99)
+    TB.MotorsOff()
+    print(100)
