@@ -5,11 +5,14 @@
     "IN4": 6,
     "ENA": 16,
     "ENB": 12,
-    "P": 0.6,
+    "P": 1,
     "I": 0,
-    "D": 0.85,
-    "GRAYSCALE_THRESHOLD": 50,
-    "BASE_SPEED": 50,
+    "D": 0.8,
+    "Original_P": 0.8,
+    "Original_I": 0,
+    "Original_D": 0.3,
+    "GRAYSCALE_THRESHOLD": 70,
+    "BASE_SPEED": 1,
     "MAX_SPEED": 100,
-    "debug": "True"
+    "debug": true
 }
