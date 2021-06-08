@@ -3,16 +3,17 @@ from Encoder_CPP.encoder import Encoder, init as initialize
 import Libraries.ThunderBorg3 as ThunderBorg
 import time
 import sys
+import random
 
 initialize()
 
 # Right motor
 encoder = Encoder(23, 24)
 #              0      -0.15       0.5
-pid1 = PID(P = -1, I = -0.07, D = 0.9)
+pid1 = PID(P = -1, I = -0.05, D = 0.9, file="maintain_speed.csv")
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-#TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
+# TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
 TB.Init()                       # Set the board up (checks the board is connected)
 if not TB.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
@@ -28,6 +29,10 @@ if not TB.foundChip:
 
 prevTime = 0
 prevSteps = 0
+rev = random.randint(6, 10)/10
+# direction = random.randint(1, 2)
+# rev = -rev if direction == 2 else rev
+c = 1
 try:
     while True:
         cTime = time.time()
@@ -36,8 +41,17 @@ try:
         prevTime = cTime
         prevSteps = steps
         time.sleep(0.01)
-        print(f"Speed: {speed}")
-        TB.SetMotor1(pid1.update(1, speed))
+        if c == 10:
+            rev = random.randint(6, 10)/10
+            # direction = random.randint(1, 2)
+            # rev = -rev if direction == 2 else rev
+            c = 0
+        # print(f"Speed: {speed}, Rev: {rev}")
+        TB.SetMotor1(pid1.update(rev, speed))
+        if abs(speed - rev) > 0.15:
+            if c > 5:
+                print(f"worry worry worry, Speed: {speed}, rev: {rev}")
+        c += 1
 except KeyboardInterrupt:
     pid1.close()
     print(99)
