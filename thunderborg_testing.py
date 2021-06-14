@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # GPIO 25 - Encoder A for Motor1
 # GPIO 22 - Encoder B for Motor1
 # GPIO 24 - Encoder A for Motor2
