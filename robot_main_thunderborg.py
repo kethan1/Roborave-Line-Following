@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import time
 import json
@@ -41,6 +43,9 @@ with open("robot_config.json") as robot_config_file:
 P_VALUE = robot_config["P"]
 I_VALUE = robot_config["I"]
 D_VALUE = robot_config["D"]
+MAINTAIN_SPEED_P_VALUE = -1
+MAINTAIN_SPEED_I_VALUE = -0.05
+MAINTAIN_SPEED_D_VALUE = 0.9
 GRAYSCALE_THRESHOLD = robot_config["GRAYSCALE_THRESHOLD"]
 BASE_SPEED = robot_config["BASE_SPEED"]
 
@@ -55,8 +60,8 @@ if "--D" in sys.argv[1:]:
 
 
 initialize()
-encoder_left = Encoder(23, 24)
-encoder_right = Encoder(22, 25)
+encoder_left = Encoder(*robot_config["Encoder_Left"])
+encoder_right = Encoder(*robot_config["Encoder_Right"])
 
 
 GPIO.setmode(GPIO.BCM)
@@ -67,14 +72,13 @@ pinlistIn = [25, 22, 24, 23]
 GPIO.setup(pinlistOut, GPIO.OUT)
 GPIO.setup(pinlistIn, GPIO.IN)
 GPIO.output(pinlistOut, 0)
-LEFT, RIGHT = 0, 1
 
 
 image, finish, targetSpeed = None, False, 0
 # currentPID = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug = debug)
-rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug = debug, file="rev_per_second.csv")
-maintain_speed_PID_left = PID(P = -1, I = -0.05, D = 0.9, file="maintain_speed_left.csv")
-maintain_speed_PID_right = PID(P = -1, I = -0.05, D = 0.9, file="maintain_speed_right.csv")
+rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv")
+maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_left.csv")
+maintain_speed_PID_right = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_right.csv")
 
 
 def imshow_debug(image_to_show, title):
@@ -92,14 +96,19 @@ def set_speed():
     while not finish:
         cTime, stepsLeft, stepsRight = time.time(), encoder_left.getSteps(), encoder_right.getSteps()
 
-        speedLeft = ((stepsLeft - prevStepsLeft) / (cTime - prevTime) / 3591.84) * 3
-        speedRight = ((stepsRight - prevStepsRight) / (cTime - prevTime) / 3591.84) * 3
-        prevStepsRight, prevStepsLeft = stepsRight, stepsLeft
+        current_speed_left = \
+            ((stepsLeft - prevStepsLeft) / 3591.84) / (cTime - prevTime) * 3
+        current_speed_right = \
+            ((stepsRight - prevStepsRight) / 3591.84) / (cTime - prevTime) * 3
+        prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
-        speed_left = maintain_speed_PID_left.update(BASE_SPEED - targetSpeed, speedLeft) / 50
-        speed_right = maintain_speed_PID_right.update(BASE_SPEED + targetSpeed, speedRight) / 50
+        speed_left = maintain_speed_PID_left.update(BASE_SPEED - targetSpeed, current_speed_left)
+        speed_right = maintain_speed_PID_right.update(BASE_SPEED + targetSpeed, current_speed_right)
 
-        print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}")
+        print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
+
+        # speed_left = speed_left if speed_left > 0.15 else 0.15
+        # speed_right = speed_right if speed_right > 0.15 else 0.15
 
         TB.SetMotor1(speed_left)
         TB.SetMotor2(speed_right)
@@ -160,7 +169,6 @@ with picamera.PiCamera() as camera:
                 while image is None:
                     camera.capture(stream, "bgr", use_video_port=True)
                     image = stream.array
-                image = cv2.rotate(image, cv2.cv2.ROTATE_180)
 
                 _, grayscale_image = cv2.threshold(
                     cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
@@ -174,7 +182,7 @@ with picamera.PiCamera() as camera:
                     end_program()
                     sys.exit()
 
-                for current_y in range(0, height, 20):
+                for current_y in range(height, 0, -20):
                     cropped_image = grayscale_image[current_y: current_y + 20, 0: -1]
                     if np.sum(cropped_image) > 20*255 and current_y+20 < height:
                         center_of_mass_y, center_of_mass_x = \
@@ -190,22 +198,19 @@ with picamera.PiCamera() as camera:
                 print(f"targetSpeed: {targetSpeed}")
 
                 if not bl_wh:
-                    debugging = cv2.circle(
+                    imshow_debug("Video Stream with Circle", cv2.circle(
                         image, (
                             IntRound(center_of_mass_x),
                             current_y + IntRound(center_of_mass_y)
                         ), 10, (0, 0, 255), 10
-                    )
+                    ))
                 else:
-                    grayBGR = cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR)
-                    debugging = cv2.circle(
-                        grayBGR, (
+                    imshow_debug("Video Stream with Circle", cv2.circle(
+                        cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR), (
                             IntRound(center_of_mass_x),
                             current_y + IntRound(center_of_mass_y)
                         ), 10, (0, 0, 255), 10
-                    )
-                debugging = cv2.rotate(debugging, cv2.cv2.ROTATE_180)
-                imshow_debug("Video Stream with Circle", debugging)
+                    ))
 
                 stream.seek(0)
                 stream.truncate()
@@ -216,6 +221,5 @@ with picamera.PiCamera() as camera:
                 # print(f"Frame Time: {1/(end_time-start_time)}")
             except KeyboardInterrupt:
                 break
-
 
 end_program()

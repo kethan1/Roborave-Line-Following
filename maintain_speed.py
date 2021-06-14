@@ -1,6 +1,9 @@
+#!/usr/bin/env python3
+
 from PID import PID
 from Encoder_CPP.encoder import Encoder, init as initialize
 import Libraries.ThunderBorg3 as ThunderBorg
+
 import time
 import sys
 import random
@@ -53,7 +56,9 @@ try:
                 print(f"worry worry worry, Speed: {speed}, rev: {rev}")
         c += 1
 except KeyboardInterrupt:
-    pid1.close()
-    print(99)
-    TB.MotorsOff()
-    print(100)
+    pass
+
+pid1.close()
+print(99)
+TB.MotorsOff()
+print(100)
