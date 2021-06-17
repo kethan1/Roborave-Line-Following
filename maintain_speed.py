@@ -33,6 +33,7 @@ if not TB.foundChip:
 prevTime = 0
 prevSteps = 0
 rev = random.randint(6, 10)/10
+# rev = 1
 # direction = random.randint(1, 2)
 # rev = -rev if direction == 2 else rev
 c = 1
@@ -40,7 +41,7 @@ try:
     while True:
         cTime = time.time()
         steps = encoder.getSteps()
-        speed = ((steps - prevSteps) / (cTime - prevTime) / 3591.84) * 3
+        speed = ((steps - prevSteps) / 3591.84) / (cTime - prevTime) * 3
         prevTime = cTime
         prevSteps = steps
         time.sleep(0.01)
@@ -49,7 +50,7 @@ try:
             # direction = random.randint(1, 2)
             # rev = -rev if direction == 2 else rev
             c = 0
-        # print(f"Speed: {speed}, Rev: {rev}")
+        print(f"Speed: {speed}, Rev: {rev}")
         TB.SetMotor1(pid1.update(rev, speed))
         if abs(speed - rev) > 0.15:
             if c > 5:

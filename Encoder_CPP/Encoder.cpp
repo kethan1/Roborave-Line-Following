@@ -5,7 +5,7 @@
 void init() {
     gpioInitialise();
     int cfg = gpioCfgGetInternals();
-    cfg |= PI_CFG_NOSIGHANDLER;  // (1<<10)
+    cfg |= PI_CFG_NOSIGHANDLER;
     gpioCfgSetInternals(cfg);
 }
 
@@ -15,10 +15,6 @@ void Encoder::callback(int gpio, int level, uint32_t tick, void *user) {
     */
 
     Encoder *self = (Encoder *) user;
-
-    // double elapsed = (tick - self->prevTicks) / 1'000'000.0;
-    // self->speed = 1/(elapsed * 4.0);
-    // self->prevTicks = tick;
 
     if (gpio == self->gpioA) self->levA = level; else self->levB = level;
 
@@ -39,6 +35,7 @@ void Encoder::callback(int gpio, int level, uint32_t tick, void *user) {
         }
     }
 }
+
 
 Encoder::Encoder(int aGpioA, int aGpioB) {
     gpioA = aGpioA;

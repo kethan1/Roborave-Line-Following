@@ -1,9 +1,9 @@
 {
     "Encoder_Left": [23, 24],
     "Encoder_Right": [22, 25],
-    "P": -0.0205,
+    "P": -0.022,
     "I": 0,
-    "D": 0,
+    "D": -0.08,
     "Working_P": -0.02,
     "Working_I": 0,
     "Working_D": 0,
@@ -15,7 +15,7 @@
         "I": -0.05,
         "D": 0.9
     },
-    "GRAYSCALE_THRESHOLD": 70,
+    "GRAYSCALE_THRESHOLD": 65,
     "BASE_SPEED": 0.5,
     "debug": true
 }

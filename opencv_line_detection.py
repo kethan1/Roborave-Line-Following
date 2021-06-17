@@ -17,7 +17,6 @@ def custom_round(number):
     return int(round(number))
 
 
-current_camera = cv2.VideoCapture(0)
 image = None
 
 
@@ -30,7 +29,6 @@ with picamera.PiCamera() as camera:
                 while image is None:
                     camera.capture(stream, 'bgr', use_video_port=True)
                     image = stream.array
-                    # _, image = current_camera.read()
 
                 grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 _, grayscale_image = cv2.threshold(
@@ -52,8 +50,14 @@ with picamera.PiCamera() as camera:
                     print("Line Lost")
                     sys.exit()
 
-                debugging = cv2.circle(image, (custom_round(
-                    center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
+                debugging = cv2.circle(
+                    image,
+                    (
+                        custom_round(center_of_mass_x),
+                        current_y + custom_round(center_of_mass_y)
+                    ),
+                    10, (0, 0, 255), 10
+                )
                 imshow_debug("Video Stream with Circle", debugging)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -65,4 +69,3 @@ with picamera.PiCamera() as camera:
 
 
 cv2.destroyAllWindows()
-current_camera.release()

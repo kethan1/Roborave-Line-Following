@@ -26,7 +26,7 @@ class PID:
             self.prevError = error
             self.first = False
         output = (self.P * error) + (self.iAccumulator * self.I) + ((error - self.prevError) * self.D)
-        if self.debug:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+        if self.debug:
             self.writePointer.writerow([
                 output,
                 self.iAccumulator,
