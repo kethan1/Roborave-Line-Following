@@ -64,7 +64,15 @@ for image_path in os.listdir("images/intersection_images"):
 
 # Live Video Testing
 
-# file_number = max(map(int, [file.split(".")[0] for file in os.listdir("images/intersection_images")]))
+# file_number = max(
+#     map(
+#         int,
+#         [
+#             file.split(".")[0]
+#             for file in os.listdir("images/intersection_images")
+#         ]
+#     )
+# )
 
 # with picamera.PiCamera() as camera:
 #     camera.resolution = (320, 240)
