@@ -14,7 +14,8 @@ class PID:
             self.writePointer = csv.writer(self.fileOutput)
             self.writePointer.writerow([
                 "Equation", "I Accumulator", "Error", "Prev Error",
-                "P With Error", "I with I Accumulator", "D with Prev Error"
+                "P With Error", "I with I Accumulator", "D with Prev Error",
+                "Setpoint"
             ])
         self.first = True
 

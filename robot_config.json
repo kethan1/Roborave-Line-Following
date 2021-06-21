@@ -3,7 +3,7 @@
     "Encoder_Right": [22, 25],
     "P": -0.022,
     "I": 0,
-    "D": -0.08,
+    "D": 0.033,
     "Working_P": -0.02,
     "Working_I": 0,
     "Working_D": 0,
@@ -13,7 +13,7 @@
     "MAINTAIN_SPEED_PID": {
         "P": -1,
         "I": -0.05,
-        "D": 0.9
+        "D": -1
     },
     "GRAYSCALE_THRESHOLD": 65,
     "BASE_SPEED": 0.5,
