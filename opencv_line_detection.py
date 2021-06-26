@@ -30,9 +30,9 @@ with picamera.PiCamera() as camera:
                     camera.capture(stream, 'bgr', use_video_port=True)
                     image = stream.array
 
-                grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                grayscale_image1 = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 _, grayscale_image = cv2.threshold(
-                    grayscale_image, 115, 255, cv2.THRESH_BINARY_INV)
+                    grayscale_image1, 65, 255, cv2.THRESH_BINARY_INV)
 
                 height, width = grayscale_image.shape
 
@@ -58,7 +58,9 @@ with picamera.PiCamera() as camera:
                     ),
                     10, (0, 0, 255), 10
                 )
-                imshow_debug("Video Stream with Circle", debugging)
+                imshow_debug("Video Stream1 with Circle", grayscale_image1)
+                imshow_debug("Video Stream2 with Circle", grayscale_image)
+                imshow_debug("Video Stream3 with Circle", debugging)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break

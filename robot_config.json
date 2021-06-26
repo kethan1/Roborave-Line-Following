@@ -1,9 +1,9 @@
 {
     "Encoder_Left": [23, 24],
     "Encoder_Right": [22, 25],
-    "P": -0.022,
+    "P": -0.02,
     "I": 0,
-    "D": 0.033,
+    "D": 0,
     "Working_P": -0.02,
     "Working_I": 0,
     "Working_D": 0,
