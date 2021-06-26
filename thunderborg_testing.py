@@ -8,8 +8,8 @@ import Libraries.ThunderBorg3 as ThunderBorg
 import sys
 import time
 
-motor_left = 0.84
-motor_right = 0.84
+motor_left = 1
+motor_right = 1
 try:
     motor_left = int(sys.argv[1])
 except ValueError:
