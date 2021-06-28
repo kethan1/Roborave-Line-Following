@@ -32,10 +32,12 @@ if not TB.foundChip:
     if len(boards) == 0:
         print('No ThunderBorg found, check you are attached :)')
     else:
-        print(f'No ThunderBorg at address {TB.i2cAddress}, but we did find boards:')
+        print(f'No ThunderBorg at address {TB.i2cAddress}, \
+                but we did find boards:')
         for board in boards:
             print('    %02X (%d)' % (board, board))
-        print('If you need to change the I²C address change the setup line so it is correct, e.g.')
+        print('If you need to change the I²C address change the setup line so \
+            it is correct, e.g.')
         print('TB.i2cAddress = 0x%02X' % (boards[0]))
     sys.exit()
 
@@ -45,7 +47,7 @@ try:
     TB.SetMotor1(motor_left)
     TB.SetMotor2(motor_right)
     while True:
-        time.sleep(1)
-except:
+        time.sleep(5)
+except KeyboardInterrupt:
     pass
 TB.MotorsOff()
