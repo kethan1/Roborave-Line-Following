@@ -108,16 +108,20 @@ def set_speed():
         # speed_right = speed_right if speed_right > 0.15 else 0.15
         if speed_left > 0:
             speed_left = speed_left if speed_left > 0.15 else 0.15
+            speed_left = speed_left if speed_left <= 1.75 else 1.75
         else:
             speed_left = speed_left if speed_left < -0.15 else -0.15
+            speed_left = speed_left if speed_left >= -1.75 else -1.75
         if speed_right > 0:
             speed_right = speed_right if speed_right > 0.15 else 0.15
+            speed_right = speed_right if speed_right <= 1.75 else 1.75
         else:
             speed_right = speed_right if speed_right < -0.15 else -0.15
+            speed_right = speed_right if speed_right >= -1.75 else -1.75
 
         TB.SetMotor1(speed_left)
         TB.SetMotor2(speed_right)
-        time.sleep(0.01)
+        time.sleep(0.005)
 
     maintain_speed_PID_left.close()
     maintain_speed_PID_right.close()
