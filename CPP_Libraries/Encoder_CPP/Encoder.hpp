@@ -1,5 +1,5 @@
-#ifndef TEST_HPP
-#define TEST_HPP
+#ifndef Encoder_HPP
+#define Encoder_HPP
 #include <stdint.h>
 typedef void (*EncoderCB_t)(int);
 
