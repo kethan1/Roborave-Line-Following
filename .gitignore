@@ -1,6 +1,6 @@
 *.csv
 .vscode/
-Encoder_CPP/encoder.py
+CPP_Libraries/Encoder_CPP/encoder.py
 *_wrap.cxx
 Old_Python
 

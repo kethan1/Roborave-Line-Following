@@ -15,7 +15,7 @@ import scipy.ndimage
 
 import Libraries.ThunderBorg3 as ThunderBorg
 from PID import PID
-from Encoder_CPP.encoder import Encoder, init as initialize
+from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize
 
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
