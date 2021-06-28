@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from PID import PID
-from Encoder_CPP.encoder import Encoder, init as initialize
+from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize
 import Libraries.ThunderBorg3 as ThunderBorg
 
 import time
@@ -39,6 +39,10 @@ rev = random.randint(6, 10)/10
 x = time.time()
 y = 0.5 * math.sin((math.pi * 4) * x) + 0.5
 c = 1
+last_five_encoder_values = {
+    "left": [],
+    "right": []
+}
 try:
     while True:
         cTime, stepsLeft, stepsRight = time.time(), encoder_left.getSteps(), encoder_right.getSteps()
@@ -47,16 +51,28 @@ try:
             ((stepsLeft - prevStepLeft) / 3591.84) / (cTime - prevTime) * 3
         current_speed_right = \
             ((stepsRight - prevStepRight) / 3591.84) / (cTime - prevTime) * 3
-        
+        if len(last_five_encoder_values['left']) < 5:
+            last_five_encoder_values['left'].append(current_speed_left)
+            last_five_encoder_values['right'].append(current_speed_right)
+        else:
+            last_five_encoder_values["left"] = \
+                last_five_encoder_values['left'][1:] + [current_speed_left]
+            last_five_encoder_values["right"] = \
+                last_five_encoder_values['right'][1:] + current_speed_right
+
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
-        time.sleep(0.001)
+        time.sleep(0.005)
         if c == 100:
             y = 0.5 * math.sin((math.pi * 4) * time.time()) + 0.5
             c = 0
         print(f"Speed Left: {current_speed_left}, Speed Right: {current_speed_right}, Rev: {y}")
-        TB.SetMotor1(pid_left.update(y, current_speed_left))
-        TB.SetMotor2(pid_right.update(y, current_speed_right))
+        if y > 1.75:
+            TB.SetMotor1(pid_left.update(1.75, sum(last_five_encoder_values['left']) / 5))
+            TB.SetMotor2(pid_right.update(1.75, sum(last_five_encoder_values['right'] / 5)))
+        else:
+            TB.SetMotor1(pid_left.update(y, sum(last_five_encoder_values['left']) / 5))
+            TB.SetMotor2(pid_right.update(y, sum(last_five_encoder_values['right'] / 5)))
         c += 1
 except KeyboardInterrupt:
     pass
