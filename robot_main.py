@@ -43,9 +43,9 @@ with open("robot_config.json") as robot_config_file:
 P_VALUE = robot_config["P"]
 I_VALUE = robot_config["I"]
 D_VALUE = robot_config["D"]
-MAINTAIN_SPEED_P_VALUE = -1
-MAINTAIN_SPEED_I_VALUE = -0.05
-MAINTAIN_SPEED_D_VALUE = 0.9
+MAINTAIN_SPEED_P_VALUE = robot_config["MAINTAIN_SPEED_PID"]["P"]
+MAINTAIN_SPEED_I_VALUE = robot_config["MAINTAIN_SPEED_PID"]["I"]
+MAINTAIN_SPEED_D_VALUE = robot_config["MAINTAIN_SPEED_PID"]["D"]
 GRAYSCALE_THRESHOLD = robot_config["GRAYSCALE_THRESHOLD"]
 BASE_SPEED = robot_config["BASE_SPEED"]
 

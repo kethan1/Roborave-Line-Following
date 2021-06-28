@@ -1,11 +1,15 @@
+import json
+import sys
+
 import cv2
 import scipy.ndimage
 import numpy as np
-import sys
 import picamera
 import picamera.array
 
 debug = True
+with open("robot_config.json") as robot_config_file:
+    grayscale_threshold = json.load(robot_config_file)["GRAYSCALE_THRESHOLD"]
 
 
 def imshow_debug(image_to_show, title):
@@ -15,6 +19,10 @@ def imshow_debug(image_to_show, title):
 
 def custom_round(number):
     return int(round(number))
+
+
+if sys.argv[1:]:
+    grayscale_threshold = int(sys.argv[1])
 
 
 image = None
@@ -30,22 +38,23 @@ with picamera.PiCamera() as camera:
                     camera.capture(stream, 'bgr', use_video_port=True)
                     image = stream.array
 
-                grayscale_image1 = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                _, grayscale_image = cv2.threshold(
-                    grayscale_image1, 65, 255, cv2.THRESH_BINARY_INV)
+                grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+                _, black_and_white_image = cv2.threshold(
+                    grayscale_image, grayscale_threshold, 255, cv2.THRESH_BINARY_INV)
 
-                height, width = grayscale_image.shape
+                height, width = black_and_white_image.shape
 
-                if np.sum(grayscale_image) < 50*255:
+                if np.sum(black_and_white_image) < 50*255:
                     print("Line Lost")
                     sys.exit()
 
-                for current_y in range(0, height, 20):
-                    cropped_image = grayscale_image[current_y:current_y+20, 0:-1]
-                    if np.sum(cropped_image) > 20*255 and current_y+20 < height:
+                for current_y in range(height, 0, -20):
+                    cropped_image = black_and_white_image[current_y: current_y + 20, 0:-1]
+                    if np.sum(cropped_image) > 20*255 and current_y + 20 < height:
                         center_of_mass_y, center_of_mass_x = scipy.ndimage.center_of_mass(
                             cropped_image)
                         break
+                    
                 if cropped_image is None:
                     print("Line Lost")
                     sys.exit()
@@ -58,8 +67,8 @@ with picamera.PiCamera() as camera:
                     ),
                     10, (0, 0, 255), 10
                 )
-                imshow_debug("Video Stream1 with Circle", grayscale_image1)
-                imshow_debug("Video Stream2 with Circle", grayscale_image)
+                imshow_debug("Video Stream1 with Circle", grayscale_image)
+                imshow_debug("Video Stream2 with Circle", black_and_white_image)
                 imshow_debug("Video Stream3 with Circle", debugging)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
