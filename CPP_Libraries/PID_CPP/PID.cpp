@@ -12,7 +12,6 @@ PID::PID (double P_value, double I_value, double D_value, bool debug_value = tru
     first = true;
     iAccumulator = 0;
     prevError = 0;
-    std::ofstream file;
     file.open(file_path);
     file << "Equation, I Accumulator, Error, Prev Error, P With Error, I with I Accumulator, D with Prev Error, Setpoint, Time\n";
 }
