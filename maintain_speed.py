@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from PID import PID
-from Encoder_CPP.encoder import Encoder, init as initialize
+from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize
 import Libraries.ThunderBorg3 as ThunderBorg
 
 import time
