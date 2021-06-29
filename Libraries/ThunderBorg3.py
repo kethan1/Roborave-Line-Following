@@ -204,7 +204,6 @@ printFunction           Function reference to call when printing text, if None "
     i2cWrite      = None
     i2cRead       = None
 
-
     def RawWrite(self, command, data):
         """
 RawWrite(command, data)
