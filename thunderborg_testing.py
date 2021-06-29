@@ -24,6 +24,8 @@ except ValueError:
 except IndexError:
     pass
 
+print(f"Running at left motor at {motor_left} speed, and Running the right motor at {motor_right}")
+
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
 # TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
 TB.Init()                       # Set the board up (checks the board is connected)
