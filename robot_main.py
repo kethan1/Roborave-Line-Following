@@ -88,6 +88,7 @@ def imshow_debug(image_to_show, title):
 
 
 def set_speed():
+    global targetSpeed
     prevStepsLeft = prevStepsRight = prevTime = 0
 
     while not finish:
@@ -110,16 +111,12 @@ def set_speed():
         # speed_right = speed_right if speed_right > 0.15 else 0.15
         if speed_left > 0:
             speed_left = speed_left if speed_left > 0.15 else 0.15
-            speed_left = speed_left if speed_left <= 1.75 else 1.75
         else:
             speed_left = speed_left if speed_left < -0.15 else -0.15
-            speed_left = speed_left if speed_left >= -1.75 else -1.75
         if speed_right > 0:
             speed_right = speed_right if speed_right > 0.15 else 0.15
-            speed_right = speed_right if speed_right <= 1.75 else 1.75
         else:
             speed_right = speed_right if speed_right < -0.15 else -0.15
-            speed_right = speed_right if speed_right >= -1.75 else -1.75
 
         TB.SetMotor1(speed_left)
         TB.SetMotor2(speed_right)
@@ -179,14 +176,16 @@ with picamera.PiCamera() as camera:
                     end_program()
                     sys.exit()
 
-                targetSpeed = rev_per_second.update(width/2, center_of_mass_x)
+                targetSpeed_tmp = rev_per_second.update(width/2, center_of_mass_x)
+                if targetSpeed_tmp > 0:
+                    targetSpeed = targetSpeed_tmp if targetSpeed_tmp < 1.5 else 1.5
+                elif targetSpeed_tmp < 0:
+                    targetSpeed = targetSpeed_tmp if targetSpeed_tmp > -1.5 else -1.5
 
                 if not bl_wh:
                     imshow_debug(
                         "Video Stream with Circle",
-                        cv2.circle(
-                            image,
-                            (
+                        cv2.circle(image, (
                                 round(center_of_mass_x),
                                 current_y + round(center_of_mass_y)
                             ),
@@ -195,11 +194,12 @@ with picamera.PiCamera() as camera:
                     )
                 else:
                     imshow_debug("Video Stream with Circle", cv2.circle(
-                        cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR), (
-                            round(center_of_mass_x),
-                            current_y + round(center_of_mass_y)
-                        ), 10, (0, 0, 255), 10
-                    ))
+                            cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR), (
+                                round(center_of_mass_x),
+                                current_y + round(center_of_mass_y)
+                            ), 10, (0, 0, 255), 10
+                        )
+                    )
 
                 stream.seek(0)
                 stream.truncate()

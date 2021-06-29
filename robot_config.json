@@ -1,15 +1,9 @@
 {
     "Encoder_Left": [23, 24],
     "Encoder_Right": [22, 25],
-    "P": -0.02,
+    "P": 0.03,
     "I": 0,
-    "D": 0,
-    "Working_P": -0.02,
-    "Working_I": 0,
-    "Working_D": 0,
-    "Original_P": 0.8,
-    "Original_I": 0,
-    "Original_D": 0.3,
+    "D": -0,
     "MAINTAIN_SPEED_PID": {
         "P": 2.0,
         "I": 0.025,
