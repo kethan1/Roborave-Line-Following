@@ -79,7 +79,11 @@ COMMAND_VALUE_OFF           = 0     # I2C value representing off
 COMMAND_ANALOG_MAX          = 0x3FF # Maximum value for analog readings
 
 
+<<<<<<< HEAD
 def ScanForThunderBorg(busNumber = 1):
+=======
+def ScanForThunderBorg(busNumber=1):
+>>>>>>> 7b5bac2f1f22a8b92c584cac287aeaf7622cb53d
     """
 ScanForThunderBorg([busNumber])
 
@@ -106,7 +110,11 @@ The busNumber if supplied is which I²C bus to scan, 0 for Rev 1 boards, 1 for R
         except:
             pass
     if len(found) == 0:
+<<<<<<< HEAD
         print('No ThunderBorg boards found, is bus #%d correct (should be 0 for Rev 1, 1 for Rev 2)' % (busNumber))
+=======
+        print(f'No ThunderBorg boards found, is bus #{busNumber} correct (should be 0 for Rev 1, 1 for Rev 2)')
+>>>>>>> 7b5bac2f1f22a8b92c584cac287aeaf7622cb53d
     elif len(found) == 1:
         print('1 ThunderBorg board found')
     else:
@@ -197,6 +205,7 @@ printFunction           Function reference to call when printing text, if None "
     """
 
     # Shared values used by this class
+<<<<<<< HEAD
     busNumber               = 1                     # Check here for Rev 1 vs Rev 2 and select the correct bus
     i2cAddress              = I2C_ID_THUNDERBORG    # I²C address, override for a different address
     foundChip               = False
@@ -204,6 +213,14 @@ printFunction           Function reference to call when printing text, if None "
     i2cWrite                = None
     i2cRead                 = None
 
+=======
+    busNumber     = 1                     # Check here for Rev 1 vs Rev 2 and select the correct bus
+    i2cAddress    = I2C_ID_THUNDERBORG    # I²C address, override for a different address
+    foundChip     = False
+    printFunction = None
+    i2cWrite      = None
+    i2cRead       = None
+>>>>>>> 7b5bac2f1f22a8b92c584cac287aeaf7622cb53d
 
     def RawWrite(self, command, data):
         """
@@ -219,7 +236,10 @@ Under most circumstances you should use the appropriate function instead of RawW
         rawOutput = bytes(rawOutput)
         self.i2cWrite.write(rawOutput)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7b5bac2f1f22a8b92c584cac287aeaf7622cb53d
     def RawRead(self, command, length, retryCount = 3):
         """
 RawRead(command, length, [retryCount])
@@ -247,7 +267,10 @@ Under most circumstances you should use the appropriate function instead of RawR
         else:
             raise IOError('I2C read for command %d failed' % (command))
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 7b5bac2f1f22a8b92c584cac287aeaf7622cb53d
     def InitBusOnly(self, busNumber, address):
         """
 InitBusOnly(busNumber, address)

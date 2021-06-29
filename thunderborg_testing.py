@@ -9,7 +9,7 @@ import sys
 import time
 
 motor_left = 1
-motor_right = 0
+motor_right = 1
 try:
     motor_left = int(sys.argv[1])
 except ValueError:
@@ -23,6 +23,8 @@ except ValueError:
     print("Invalid Argument")
 except IndexError:
     pass
+
+print(f"Running at left motor at {motor_left} speed, and Running the right motor at {motor_right}")
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
 # TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address

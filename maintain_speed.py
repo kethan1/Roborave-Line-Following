@@ -37,15 +37,16 @@ prevTime = 0
 prevStepsLeft, prevStepsRight = 0, 0
 rev = random.randint(6, 10) / 10
 x = time.time()
-# y = 0.5 * math.sin((math.pi * 4) * x) + 0.5
+y = 0.5 * math.sin((math.pi * 4) * x) + 0.5
 y = 1
-# c = 1
+c = 1
 last_five_encoder_values = {
     "left": [],
     "right": []
 }
 try:
     while True:
+        x += 1
         cTime, stepsLeft, stepsRight = \
             time.time(), encoder_left.getSteps(), encoder_right.getSteps()
 
@@ -64,12 +65,11 @@ try:
             ((sum(last_five_encoder_values['right']) / len(last_five_encoder_values['right'])) / (cTime - prevTime) * 3) / 3591.84
 
         # if c == 100:
-            # y = 0.5 * math.sin((math.pi * 4) * time.time()) + 0.5
-            # y = 1
-            # c = 0
+        y = 0.5 * math.sin((math.pi * 4) * time.time()) + 0.5
+        # y = 1
+        # c = 0
         print(f"stepsLeft: {stepsLeft}, Steps Change: {stepsLeft - prevStepsLeft}, Current Speed Left: {current_speed_left}, Speed Left: {sum(last_five_encoder_values['left']) / len(last_five_encoder_values['left'])}, Rev: {y}")
         print(f"stepsRight: {stepsRight}, Steps Change: {stepsRight - prevStepsRight}, Current Speed Right: {current_speed_right}, Speed Right: {sum(last_five_encoder_values['right']) / len(last_five_encoder_values['right'])}, Rev: {y}")
-        # print(sum(last_five_encoder_values['left']) / len(last_five_encoder_values['left']), last_five_encoder_values['left'], stepsLeft - prevStepsLeft, current_speed_left)
 
         TB.SetMotor1(
             pid_left.update(
@@ -88,7 +88,7 @@ try:
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
         time.sleep(0.005)
 
-        # c += 1
+        c += 1
 except KeyboardInterrupt:
     pid_left.close()
     pid_right.close()

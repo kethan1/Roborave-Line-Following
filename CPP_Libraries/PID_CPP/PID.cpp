@@ -4,7 +4,7 @@
 #include <time.h>
 
 
-PID::PID (double P_value, double I_value, double D_value, bool debug_value = true, std::string file_path = "PIDvars.csv") {
+PID::PID (double P_value, double I_value, double D_value, bool debug_value, std::string file_path) {
     P = P_value;
     I = I_value;
     D = D_value;
@@ -28,7 +28,7 @@ double PID::update(double target, double current) {
     double output = (P * error) + (iAccumulator * I) + ((error - prevError) * D);
 
     if (debug) {
-        file << output << "," << iAccumulator << "," << error << "," << prevError << "," << P * error << "," << I * iAccumulator << "," << D * (error - prevError) << "," << target << "," << time(0) - sTime;
+        file << output << "," << iAccumulator << "," << error << "," << prevError << "," << P * error << "," << I * iAccumulator << "," << D * (error - prevError) << "," << target << "," << time(0) - sTime << "\n";
     }
 
     return output;

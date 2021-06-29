@@ -11,14 +11,9 @@
     "Original_I": 0,
     "Original_D": 0.3,
     "MAINTAIN_SPEED_PID": {
-        "P": -0.8,
-        "I": 0,
-        "D": 0.5
-    },
-    "MAINTAIN_SPEED_PID_OLD": {
-        "P": -1,
-        "I": 0,
-        "D": 0.9
+        "P": 2.0,
+        "I": 0.025,
+        "D": 1.8
     },
     "GRAYSCALE_THRESHOLD": 74,
     "BASE_SPEED": 0.8,

@@ -57,6 +57,9 @@ if "--I" in sys.argv[1:]:
 if "--D" in sys.argv[1:]:
     D_VALUE = float(sys.argv[sys.argv.index("--D") + 1])
 
+if not debug and "--print-prod" not in sys.argv[1:]:
+    sys.stdout = None
+
 
 initialize()
 encoder_left = Encoder(*robot_config["Encoder_Left"])

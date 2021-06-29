@@ -1,6 +1,7 @@
 *.csv
 .vscode/
 CPP_Libraries/Encoder_CPP/encoder.py
+CPP_Libraries/PID_CPP/PID.py
 *_wrap.cxx
 
 # Byte-compiled / optimized / DLL files
