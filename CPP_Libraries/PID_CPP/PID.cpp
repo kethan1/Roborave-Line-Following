@@ -4,16 +4,16 @@
 #include <time.h>
 
 
-PID::PID (double P_value, double I_value, double D_value, bool debug_value, std::string file_path) {
-    P = P_value;
-    I = I_value;
-    D = D_value;
+PID::PID (double P, double I, double D, bool debug_value, std::string file) {
+    P_Value = P;
+    I_Value = I;
+    D_Value = D;
     debug = debug_value;
     first = true;
     iAccumulator = 0;
     prevError = 0;
-    file.open(file_path);
-    file << "Equation,I Accumulator,Error,Prev Error,P With Error,I with I Accumulator,D with Prev Error,Setpoint,Time\n";
+    file_obj.open(file);
+    file_obj << "Equation,I Accumulator,Error,Prev Error,P With Error,I with I Accumulator,D with Prev Error,Setpoint,Time\n";
 }
 
 double PID::update(double target, double current) {
@@ -25,10 +25,10 @@ double PID::update(double target, double current) {
         first = false;
         sTime = time(0);
     }
-    double output = (P * error) + (iAccumulator * I) + ((error - prevError) * D);
+    double output = (P_Value * error) + (iAccumulator * I_Value) + ((error - prevError) * D_Value);
 
     if (debug) {
-        file << output << "," << iAccumulator << "," << error << "," << prevError << "," << P * error << "," << I * iAccumulator << "," << D * (error - prevError) << "," << target << "," << time(0) - sTime << "\n";
+        file_obj << output << "," << iAccumulator << "," << error << "," << prevError << "," << P_Value * error << "," << I_Value * iAccumulator << "," << D_Value * (error - prevError) << "," << target << "," << time(0) - sTime << "\n";
     }
 
     return output;
@@ -39,5 +39,5 @@ void PID::reset() {
 }
 
 void PID::close() {
-    file.close();
+    file_obj.close();
 }
