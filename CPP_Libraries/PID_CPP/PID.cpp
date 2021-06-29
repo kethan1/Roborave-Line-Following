@@ -4,7 +4,7 @@
 #include <time.h>
 
 
-PID::PID (double P_value, double I_value, double D_value, bool debug_value = true, std::string file_path = "PIDvars.csv") {
+PID::PID (double P_value, double I_value, double D_value, bool debug_value, std::string file_path) {
     P = P_value;
     I = I_value;
     D = D_value;

@@ -5,4 +5,4 @@ PID.py PID_wrap.cxx: PID.i PID.hpp
 clean:
 	rm -rf __pycache__ build _PID*.so PID.py PID_wrap.cxx
 test: _PID.so
-	echo "No Tests Yet"
+	python3 tester.py
