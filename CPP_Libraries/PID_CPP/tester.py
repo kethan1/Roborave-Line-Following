@@ -1,5 +1,7 @@
-import PID
+from PID import PID
 
-test_pid = PID(P=1)
+test_pid = PID(1)
 
-print(test_pid.update(9, 1))
+assert test_pid.update(1, 9) == 8.0
+assert test_pid.update(1, 1) == 0.0
+assert test_pid.update(5, 1) == -4.0

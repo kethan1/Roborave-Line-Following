@@ -28,7 +28,7 @@ double PID::update(double target, double current) {
     double output = (P * error) + (iAccumulator * I) + ((error - prevError) * D);
 
     if (debug) {
-        file << output << "," << iAccumulator << "," << error << "," << prevError << "," << P * error << "," << I * iAccumulator << "," << D * (error - prevError) << "," << target << "," << time(0) - sTime;
+        file << output << "," << iAccumulator << "," << error << "," << prevError << "," << P * error << "," << I * iAccumulator << "," << D * (error - prevError) << "," << target << "," << time(0) - sTime << "\n";
     }
 
     return output;
