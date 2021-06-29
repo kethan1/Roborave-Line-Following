@@ -10,9 +10,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfi
 
 import Libraries.ThunderBorg3 as ThunderBorg
 
-TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-#TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
-TB.Init()                       # Set the board up (checks the board is connected)
+TB = ThunderBorg.ThunderBorg()   # Create a new ThunderBorg object
+# TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
+TB.Init()                        # Set the board up (checks the board is connected)
 if not TB.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
     if len(boards) == 0:

@@ -16,12 +16,12 @@ class PID:
             self.writePointer.writerow([
                 "Equation", "I Accumulator", "Error", "Prev Error",
                 "P With Error", "I with I Accumulator", "D with Prev Error",
-                "Setpoint", "Time"
+                "Setpoint", "PIDInput", "Time"
             ])
         self.first = True
 
     def update(self, target, current):
-        error = current - target
+        error = target - current
         self.iAccumulator += error
         if self.first:
             self.iAccumulator = 0
@@ -39,6 +39,7 @@ class PID:
                 self.I * self.iAccumulator,
                 self.D * (error-self.prevError),
                 target,
+                current,
                 time.time() - self.sTime
             ])
         self.prevError = error

@@ -9,7 +9,7 @@ import sys
 import time
 
 motor_left = 1
-motor_right = 1
+motor_right = 0
 try:
     motor_left = int(sys.argv[1])
 except ValueError:
@@ -25,7 +25,7 @@ except IndexError:
     pass
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-#TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
+# TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
 TB.Init()                       # Set the board up (checks the board is connected)
 if not TB.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
@@ -41,13 +41,14 @@ if not TB.foundChip:
         print('TB.i2cAddress = 0x%02X' % (boards[0]))
     sys.exit()
 
-TB.SetBatteryMonitoringLimits(7.5, 9)
+TB.SetBatteryMonitoringLimits(11, 13)
 
 try:
     TB.SetMotor1(motor_left)
     TB.SetMotor2(motor_right)
     while True:
-        time.sleep(5)
+        time.sleep(1)
+        print(TB.GetBatteryReading())
 except KeyboardInterrupt:
     pass
 TB.MotorsOff()
