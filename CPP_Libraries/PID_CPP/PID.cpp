@@ -13,7 +13,7 @@ PID::PID (double P_value, double I_value, double D_value, bool debug_value = tru
     iAccumulator = 0;
     prevError = 0;
     file.open(file_path);
-    file << "Equation, I Accumulator, Error, Prev Error, P With Error, I with I Accumulator, D with Prev Error, Setpoint, Time\n";
+    file << "Equation,I Accumulator,Error,Prev Error,P With Error,I with I Accumulator,D with Prev Error,Setpoint,Time\n";
 }
 
 double PID::update(double target, double current) {

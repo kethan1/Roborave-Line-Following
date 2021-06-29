@@ -129,10 +129,6 @@ class PID(_object):
     __swig_getmethods__["first"] = _PID.PID_first_get
     if _newclass:
         first = _swig_property(_PID.PID_first_get, _PID.PID_first_set)
-    __swig_setmethods__["file"] = _PID.PID_file_set
-    __swig_getmethods__["file"] = _PID.PID_file_get
-    if _newclass:
-        file = _swig_property(_PID.PID_file_get, _PID.PID_file_set)
     __swig_setmethods__["sTime"] = _PID.PID_sTime_set
     __swig_getmethods__["sTime"] = _PID.PID_sTime_get
     if _newclass:

@@ -5,10 +5,11 @@
 #include <fstream>
 
 class PID {
+    std::ofstream file;
+
     public:
         double P, I, D, iAccumulator, prevError;
         bool debug, first;
-        std::ofstream file;
         
         time_t sTime;
 

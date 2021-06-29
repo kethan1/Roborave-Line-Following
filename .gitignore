@@ -2,7 +2,6 @@
 .vscode/
 CPP_Libraries/Encoder_CPP/encoder.py
 *_wrap.cxx
-Old_Python
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
