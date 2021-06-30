@@ -1,15 +1,15 @@
 {
     "Encoder_Left": [23, 24],
     "Encoder_Right": [22, 25],
-    "P": 0.03,
+    "P": 0.018,
     "I": 0,
-    "D": -0,
+    "D": 0.03,
     "MAINTAIN_SPEED_PID": {
         "P": 2.0,
         "I": 0.025,
         "D": 1.8
     },
-    "GRAYSCALE_THRESHOLD": 74,
+    "GRAYSCALE_THRESHOLD": 80,
     "BASE_SPEED": 0.8,
     "debug": true
 }

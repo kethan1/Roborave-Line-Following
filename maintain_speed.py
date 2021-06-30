@@ -4,6 +4,7 @@ from PID import PID
 from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize
 import Libraries.ThunderBorg3 as ThunderBorg
 
+
 import time
 import sys
 import random
@@ -44,6 +45,7 @@ last_five_encoder_values = {
     "left": [],
     "right": []
 }
+sys.exit()
 try:
     while True:
         x += 1
