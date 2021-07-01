@@ -144,6 +144,7 @@ set_speed_thread.start()
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
         camera.resolution = (320, 240)
+        time.sleep(1)
         while True:
             try:
                 # start_time = timeit.default_timer()
