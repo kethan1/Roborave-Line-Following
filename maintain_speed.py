@@ -45,7 +45,6 @@ last_five_encoder_values = {
     "left": [],
     "right": []
 }
-sys.exit()
 try:
     while True:
         x += 1

@@ -64,67 +64,65 @@ for image_path in os.listdir("images/intersection_images"):
 
 # Live Video Testing
 
-# file_number = max(
-#     map(
-#         int,
-#         [
-#             file.split(".")[0]
-#             for file in os.listdir("images/intersection_images")
-#         ]
-#     )
-# )
+file_number = max(
+    map(
+        int,
+        [
+            file.split(".")[0]
+            for file in os.listdir("images/intersection_images")
+        ]
+    )
+)
 
-# with picamera.PiCamera() as camera:
-#     camera.resolution = (320, 240)
-#     with picamera.array.PiRGBArray(camera) as stream:
-#         for _ in range(5):
-#             camera.capture(stream, "bgr", use_video_port=True)
-#             stream.seek(0)
-#             stream.truncate()
+with picamera.PiCamera() as camera:
+    camera.resolution = (320, 240)
+    with picamera.array.PiRGBArray(camera) as stream:
+        for _ in range(5):
+            camera.capture(stream, "bgr", use_video_port=True)
+            stream.seek(0)
+            stream.truncate()
 
-#         while True:
-#             try:
-#                 # start_time = timeit.default_timer()
-#                 image, cropped_image = None, None
-#                 while image is None:
-#                     camera.capture(stream, "bgr", use_video_port=True)
-#                     image = stream.array
+        while True:
+            try:
+                # start_time = timeit.default_timer()
+                camera.capture(stream, "bgr", use_video_port=True)
+                image = stream.array
 
-#                 _, grayscale_image = cv2.threshold(
-#                     cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
-#                     70, 255, cv2.THRESH_BINARY_INV
-#                 )
+                _, grayscale_image = cv2.threshold(
+                    cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
+                    70, 255, cv2.THRESH_BINARY_INV
+                )
 
-#                 grayscale_image = cv2.resize(
-#                     grayscale_image, dsize=(
-#                         int(image.shape[1] * 0.2), int(image.shape[0] * 0.2)
-#                     ),
-#                     interpolation=cv2.INTER_CUBIC
-#                 )
+                grayscale_image_resized = cv2.resize(
+                    grayscale_image, dsize=(
+                        int(image.shape[1] * 0.2), int(image.shape[0] * 0.2)
+                    ),
+                    interpolation=cv2.INTER_CUBIC
+                )
 
-#                 image_summed = np.sum(grayscale_image, 1)
-#                 max_pixels = np.max(image_summed) / 255
-#                 if (grayscale_image.shape[1] * 0.4) <= max_pixels:
-#                     print("Intersection spotted")
-#                     print(f"{max_pixels/grayscale_image.shape[1]}")
-#                 else:
-#                     print("No Intersections")
+                image_summed = np.sum(grayscale_image_resized, 1)
+                max_pixels = np.max(image_summed) / 255
+                if (grayscale_image_resized.shape[1] * 0.4) <= max_pixels:
+                    print("Intersection spotted")
+                    print(f"{max_pixels/grayscale_image_resized.shape[1]}")
+                else:
+                    print("No Intersections")
 
-#                 cv2.imshow("Video Stream", grayscale_image)
+                cv2.imshow("Video Stream", grayscale_image)
 
-#                 keypressed = cv2.waitKey(1)
+                keypressed = cv2.waitKey(1)
 
-#                 if keypressed & 0xFF == ord('q'):
-#                     break
-#                 elif keypressed & 0xFF == ord('s'):
-#                     cv2.imwrite(
-#                         f"images/intersection_images/{file_number}.jpg",
-#                         grayscale_image
-#                     )
-#                     file_number += 1
+                if keypressed & 0xFF == ord('q'):
+                    break
+                elif keypressed & 0xFF == ord('s'):
+                    cv2.imwrite(
+                        f"images/intersection_images/{file_number}.jpg",
+                        grayscale_image
+                    )
+                    file_number += 1
 
-#                 stream.seek(0)
-#                 stream.truncate()
+                stream.seek(0)
+                stream.truncate()
 
-#             except KeyboardInterrupt:
-#                 cv2.destroyAllWindows()
+            except KeyboardInterrupt:
+                cv2.destroyAllWindows()

@@ -131,6 +131,8 @@ set_speed_thread = threading.Thread(target=set_speed)
 
 def end_program():
     global finish
+
+    print("Ending Program")
     finish = True
     cv2.destroyAllWindows()
     TB.MotorsOff()
@@ -139,19 +141,16 @@ def end_program():
     set_speed_thread.join()
 
 
-set_speed_thread.start()
-
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
         camera.resolution = (320, 240)
         time.sleep(1)
+        set_speed_thread.start()
         while True:
             try:
                 # start_time = timeit.default_timer()
-                image, cropped_image = None, None
-                while image is None:
-                    camera.capture(stream, "bgr", use_video_port=True)
-                    image = stream.array
+                camera.capture(stream, "bgr", use_video_port=True)
+                image = stream.array
 
                 _, grayscale_image = cv2.threshold(
                     cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
@@ -182,6 +181,8 @@ with picamera.PiCamera() as camera:
                     targetSpeed = targetSpeed_tmp if targetSpeed_tmp < 1.5 else 1.5
                 elif targetSpeed_tmp < 0:
                     targetSpeed = targetSpeed_tmp if targetSpeed_tmp > -1.5 else -1.5
+                else:
+                    targetSpeed = 0
 
                 if not bl_wh:
                     imshow_debug(
@@ -210,6 +211,7 @@ with picamera.PiCamera() as camera:
                 # end_time = timeit.default_timer()
                 # print(f"Frame Time: {1/(end_time-start_time)}")
             except KeyboardInterrupt:
-                break
+                end_program()
 
-end_program()
+if not finish:
+    end_program()
