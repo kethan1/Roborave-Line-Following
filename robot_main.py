@@ -164,6 +164,7 @@ with picamera.PiCamera() as camera:
                     end_program()
                     sys.exit()
 
+                cropped_image = None
                 for current_y in range(height, 0, -20):
                     cropped_image = grayscale_image[current_y: current_y + 20, 0: -1]
                     if np.sum(cropped_image) > 20*255 and current_y+20 < height:

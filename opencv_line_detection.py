@@ -54,7 +54,7 @@ with picamera.PiCamera() as camera:
                         center_of_mass_y, center_of_mass_x = scipy.ndimage.center_of_mass(
                             cropped_image)
                         break
-                    
+
                 if cropped_image is None:
                     print("Line Lost")
                     sys.exit()
@@ -67,9 +67,9 @@ with picamera.PiCamera() as camera:
                     ),
                     10, (0, 0, 255), 10
                 )
-                imshow_debug("Video Stream1 with Circle", grayscale_image)
-                imshow_debug("Video Stream2 with Circle", black_and_white_image)
-                imshow_debug("Video Stream3 with Circle", debugging)
+                imshow_debug("Grayscale Image", grayscale_image)
+                imshow_debug("Black and White Image", black_and_white_image)
+                imshow_debug("Color Image", debugging)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
