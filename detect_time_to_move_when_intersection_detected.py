@@ -76,7 +76,7 @@ GPIO.setup(pinlistIn, GPIO.IN)
 GPIO.output(pinlistOut, 0)
 
 
-image, finish, targetSpeed = None, False, 0
+image, finish, targetSpeed, sameSpeed = None, False, 0, False
 rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv")
 maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_left.csv")
 maintain_speed_PID_right = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_right.csv")
@@ -88,7 +88,7 @@ def imshow_debug(image_to_show, title):
 
 
 def set_speed():
-    global targetSpeed
+    global targetSpeed, sameSpeed
     prevStepsLeft = prevStepsRight = prevTime = 0
 
     while not finish:
@@ -100,8 +100,12 @@ def set_speed():
             ((stepsRight - prevStepsRight) / 3591.84) / (cTime - prevTime) * 3
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
-        speed_left = maintain_speed_PID_left.update(BASE_SPEED - targetSpeed, current_speed_left)
-        speed_right = maintain_speed_PID_right.update(BASE_SPEED + targetSpeed, current_speed_right)
+        if not sameSpeed:
+            speed_left = maintain_speed_PID_left.update(BASE_SPEED - targetSpeed, current_speed_left)
+            speed_right = maintain_speed_PID_right.update(BASE_SPEED + targetSpeed, current_speed_right)
+        else:
+            speed_left = maintain_speed_PID_left.update(targetSpeed, current_speed_left)
+            speed_right = maintain_speed_PID_right.update(targetSpeed, current_speed_right)
 
         print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
 
@@ -180,49 +184,13 @@ with picamera.PiCamera() as camera:
                 max_pixels = pixels_sum[max_pixels_pos] / 255
                 if (grayscale_image_resized.shape[1] * 0.4) <= max_pixels:
                     print("Intersection spotted")
-                    print(f"{max_pixels/grayscale_image_resized.shape[1]}, \
-                        max_pixels_pos={max_pixels_pos}")
-                    end_program()
+                    print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
 
-                height, width = grayscale_image.shape
-
-                if np.sum(grayscale_image) < 50 * 255:
-                    print("Line Lost")
-                    end_program()
-
-                for current_y in range(height, 0, -20):
-                    cropped_image = grayscale_image[current_y: current_y + 20, 0: -1]
-                    if np.sum(cropped_image) > 20*255 and current_y+20 < height:
-                        center_of_mass_y, center_of_mass_x = \
-                            scipy.ndimage.center_of_mass(cropped_image)
-                        break
-
-                targetSpeed_tmp = rev_per_second.update(width/2, center_of_mass_x)
-                if targetSpeed_tmp > 0:
-                    targetSpeed = targetSpeed_tmp if targetSpeed_tmp < 1.5 else 1.5
-                elif targetSpeed_tmp < 0:
-                    targetSpeed = targetSpeed_tmp if targetSpeed_tmp > -1.5 else -1.5
-                else:
+                    sameSpeed = True
+                    targetSpeed = 1.35
+                    time.sleep(abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.01)
                     targetSpeed = 0
-
-                if not bl_wh:
-                    imshow_debug(
-                        "Video Stream with Circle",
-                        cv2.circle(image, (
-                                round(center_of_mass_x),
-                                current_y + round(center_of_mass_y)
-                            ),
-                            10, (0, 0, 255), 10
-                        )
-                    )
-                else:
-                    imshow_debug("Video Stream with Circle", cv2.circle(
-                            cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR), (
-                                round(center_of_mass_x),
-                                current_y + round(center_of_mass_y)
-                            ), 10, (0, 0, 255), 10
-                        )
-                    )
+                    # end_program()
 
                 stream.seek(0)
                 stream.truncate()
