@@ -51,9 +51,9 @@ for image_path in os.listdir("images/intersection_images"):
     img_width = image1.shape[1]
     # 7 and 15 are falsely detected, but they have the same (or very close)
     # pixel values to real intersections. The intersection detection isn't
-    # really detecting intersections, its detecting turns that are too sharp
-    # for the line following. 7 and 15 are too sharp for the line following,
-    # so this is fine.
+    # really detecting intersections, it's for detecting turns that are too
+    # sharp for the line following. 7 and 15 are too sharp for the line
+    # following, so this is fine.
     if (img_width * 1/3) <= max_pixels:
         print(f"Intersection spotted {image_path}")
         print(max_pixels)
