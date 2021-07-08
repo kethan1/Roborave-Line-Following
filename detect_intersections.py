@@ -105,8 +105,6 @@ with picamera.PiCamera() as camera:
                 if (grayscale_image_resized.shape[1] * 0.4) <= max_pixels:
                     print("Intersection spotted")
                     print(f"{max_pixels/grayscale_image_resized.shape[1]}")
-                else:
-                    print("No Intersections")
 
                 cv2.imshow("Video Stream", grayscale_image)
 
