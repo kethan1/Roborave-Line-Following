@@ -3,7 +3,7 @@
 import sys
 import time
 import json
-import timeit
+# import timeit
 import threading
 
 import cv2
@@ -15,7 +15,7 @@ import scipy.ndimage
 
 import Libraries.ThunderBorg3 as ThunderBorg
 from PID import PID
-from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize
+from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encoder
 
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
@@ -61,7 +61,7 @@ if not debug and "--print-prod" not in sys.argv[1:]:
     sys.stdout = None
 
 
-initialize()
+initialize_encoder()
 encoder_left = Encoder(*robot_config["Encoder_Left"])
 encoder_right = Encoder(*robot_config["Encoder_Right"])
 
@@ -144,7 +144,7 @@ def end_program():
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
         camera.resolution = (320, 240)
-        time.sleep(1)
+        time.sleep(0.5)
         set_speed_thread.start()
         while True:
             try:
