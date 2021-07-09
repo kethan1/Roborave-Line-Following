@@ -74,9 +74,12 @@ pinlistIn = [25, 22, 24, 23]
 GPIO.setup(pinlistOut, GPIO.OUT)
 GPIO.setup(pinlistIn, GPIO.IN)
 GPIO.output(pinlistOut, 0)
+LEFT, RIGHT = 0, 1
 
 
 image, finish, targetSpeed = None, False, 0
+speed_seperate = []
+intersection_turns = RIGHT
 rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv")
 maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_left.csv")
 maintain_speed_PID_right = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_right.csv")
@@ -88,7 +91,7 @@ def imshow_debug(image_to_show, title):
 
 
 def set_speed():
-    global targetSpeed
+    global targetSpeed, speed_seperate
     prevStepsLeft = prevStepsRight = prevTime = 0
 
     while not finish:
@@ -100,8 +103,25 @@ def set_speed():
             ((stepsRight - prevStepsRight) / 3591.84) / (cTime - prevTime) * 3
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
-        speed_left = maintain_speed_PID_left.update(BASE_SPEED - targetSpeed, current_speed_left)
-        speed_right = maintain_speed_PID_right.update(BASE_SPEED + targetSpeed, current_speed_right)
+        if targetSpeed != 0:
+            if not speed_seperate:
+                speed_left = maintain_speed_PID_left.update(BASE_SPEED - targetSpeed, current_speed_left)
+                speed_right = maintain_speed_PID_right.update(BASE_SPEED + targetSpeed, current_speed_right)
+            elif speed_seperate:
+                speed_left = maintain_speed_PID_left.update(speed_seperate[0], current_speed_left)
+                speed_right = maintain_speed_PID_right.update(speed_seperate[1], current_speed_right)
+
+            if speed_left > 0:
+                speed_left = speed_left if speed_left > 0.15 else 0.15
+            else:
+                speed_left = speed_left if speed_left < -0.15 else -0.15
+            if speed_right > 0:
+                speed_right = speed_right if speed_right > 0.15 else 0.15
+            else:
+                speed_right = speed_right if speed_right < -0.15 else -0.15
+        else:
+            speed_left = 0
+            speed_right = 0
 
         print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
 
@@ -109,14 +129,6 @@ def set_speed():
         # power level to 0.15 if it is lower than that.
         # speed_left = speed_left if speed_left > 0.15 else 0.15
         # speed_right = speed_right if speed_right > 0.15 else 0.15
-        if speed_left > 0:
-            speed_left = speed_left if speed_left > 0.15 else 0.15
-        else:
-            speed_left = speed_left if speed_left < -0.15 else -0.15
-        if speed_right > 0:
-            speed_right = speed_right if speed_right > 0.15 else 0.15
-        else:
-            speed_right = speed_right if speed_right < -0.15 else -0.15
 
         TB.SetMotor1(speed_left)
         TB.SetMotor2(speed_right)
@@ -145,7 +157,7 @@ def end_program():
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
         camera.resolution = (320, 240)
-        time.sleep(1)  # Allow camera warmup
+        # time.sleep(1)  # Allow camera warmup
         for _ in range(25):
             camera.capture(stream, "bgr", use_video_port=True)
             image = stream.array
@@ -178,11 +190,32 @@ with picamera.PiCamera() as camera:
                 pixels_sum = np.sum(grayscale_image_resized, 1)
                 max_pixels_pos = np.argmax(pixels_sum)
                 max_pixels = pixels_sum[max_pixels_pos] / 255
-                if (grayscale_image_resized.shape[1] * 0.4) <= max_pixels:
+
+                if grayscale_image_resized.shape[1] * 0.6 <= max_pixels:
                     print("Intersection spotted")
-                    print(f"{max_pixels/grayscale_image_resized.shape[1]}, \
-                        max_pixels_pos={max_pixels_pos}")
-                    end_program()
+                    print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
+
+                    print("Going through the intersection")
+
+                    speed_seperate = [1.2, 1.2]
+                    time.sleep(abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.0083)
+
+                    if intersection_turns == LEFT:
+                        print(f"Intersection Turn: {intersection_turns}")
+                        speed_seperate = [-0.5, 0.5]
+                        time.sleep(1)
+                        speed_seperate = []
+                    elif intersection_turns == RIGHT:
+                        print(f"Intersection Turn: {intersection_turns}")
+                        speed_seperate = [0.5, -0.5]
+                        time.sleep(1)
+                        speed_seperate = []
+                    targetSpeed = 0
+
+                    stream.seek(0)
+                    stream.truncate()
+
+                    continue
 
                 height, width = grayscale_image.shape
 
