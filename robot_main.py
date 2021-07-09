@@ -191,7 +191,7 @@ with picamera.PiCamera() as camera:
                 max_pixels_pos = np.argmax(pixels_sum)
                 max_pixels = pixels_sum[max_pixels_pos] / 255
 
-                if grayscale_image_resized.shape[1] * 0.6 <= max_pixels:
+                if grayscale_image_resized.shape[1] * 0.8 <= max_pixels:
                     print("Intersection spotted")
                     print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
 
@@ -203,12 +203,12 @@ with picamera.PiCamera() as camera:
                     if intersection_turns == LEFT:
                         print(f"Intersection Turn: {intersection_turns}")
                         speed_seperate = [-0.5, 0.5]
-                        time.sleep(1)
+                        time.sleep(0.9)
                         speed_seperate = []
                     elif intersection_turns == RIGHT:
                         print(f"Intersection Turn: {intersection_turns}")
                         speed_seperate = [0.5, -0.5]
-                        time.sleep(1)
+                        time.sleep(0.9)
                         speed_seperate = []
                     targetSpeed = 0
 
@@ -225,7 +225,7 @@ with picamera.PiCamera() as camera:
 
                 for current_y in range(height, 0, -20):
                     cropped_image = grayscale_image[current_y: current_y + 20, 0: -1]
-                    if np.sum(cropped_image) > 20*255 and current_y+20 < height:
+                    if np.sum(cropped_image) > 20*255 and current_y + 20 < height:
                         center_of_mass_y, center_of_mass_x = \
                             scipy.ndimage.center_of_mass(cropped_image)
                         break
