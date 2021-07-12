@@ -105,8 +105,8 @@ def set_speed():
 
         if targetSpeed != 0:
             if not speed_seperate:
-                speed_left = maintain_speed_PID_left.update(BASE_SPEED - targetSpeed, current_speed_left)
-                speed_right = maintain_speed_PID_right.update(BASE_SPEED + targetSpeed, current_speed_right)
+                speed_left = maintain_speed_PID_left.update(BASE_SPEED + targetSpeed, current_speed_left)
+                speed_right = maintain_speed_PID_right.update(BASE_SPEED - targetSpeed, current_speed_right)
             elif speed_seperate:
                 speed_left = maintain_speed_PID_left.update(speed_seperate[0], current_speed_left)
                 speed_right = maintain_speed_PID_right.update(speed_seperate[1], current_speed_right)
@@ -158,7 +158,7 @@ with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
         camera.resolution = (320, 240)
         # time.sleep(1)  # Allow camera warmup
-        for _ in range(25):
+        for _ in range(40):
             camera.capture(stream, "bgr", use_video_port=True)
             image = stream.array
 
