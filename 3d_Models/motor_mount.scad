@@ -7,7 +7,9 @@ difference() {
     translate([-(33 / 2), -15, 0]) {
         cube([33, 28, 2]);
     }
-    cylinder(h = 13, r = 4);
+    translate([0, 0, -0.01]) {
+        cylinder(h = 15, r = 4);
+    }
 }
 
 rotate([-90, 0, 0]) {
