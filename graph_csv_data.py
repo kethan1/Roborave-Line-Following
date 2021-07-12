@@ -40,7 +40,7 @@ with open(filename, 'r') as csvfile:
             start = False
 
 plt.plot(theTime, Equation, label='Equation')
-# plt.plot(theTime, I_Accumulator, label='I Accumulator')
+plt.plot(theTime, I_Accumulator, label='I Accumulator')
 # plt.plot(theTime, Prev_Error, label='Previous Error')
 plt.plot(theTime, P_With_Error, label='P With Error')
 plt.plot(theTime, I_With_I_Accumulator, label='I With I Accumulator')

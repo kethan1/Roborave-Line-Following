@@ -45,6 +45,8 @@ if not TB.foundChip:
 
 TB.SetBatteryMonitoringLimits(11, 13)
 
+print(motor_right)
+
 try:
     time.sleep(1)
     TB.SetMotor1(motor_left)
