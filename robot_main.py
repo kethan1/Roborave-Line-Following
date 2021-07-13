@@ -77,9 +77,9 @@ GPIO.output(pinlistOut, 0)
 LEFT, RIGHT = 0, 1
 
 
-image, finish, targetSpeed = None, False, 0
-speed_seperate = []
-intersection_turns = RIGHT
+image, finish, targetSpeed, towerFound = None, False, 0, False
+speed_separate = []
+intersection_turns = LEFT
 rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv")
 maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_left.csv")
 maintain_speed_PID_right = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_right.csv")
@@ -91,7 +91,7 @@ def imshow_debug(image_to_show, title):
 
 
 def set_speed():
-    global targetSpeed, speed_seperate
+    global targetSpeed, speed_separate
     prevStepsLeft = prevStepsRight = prevTime = 0
 
     while not finish:
@@ -103,14 +103,17 @@ def set_speed():
             ((stepsRight - prevStepsRight) / 3591.84) / (cTime - prevTime) * 3
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
-        if targetSpeed != 0:
-            if not speed_seperate:
+        if not speed_separate:
+            if targetSpeed != 0:
                 speed_left = maintain_speed_PID_left.update(BASE_SPEED + targetSpeed, current_speed_left)
                 speed_right = maintain_speed_PID_right.update(BASE_SPEED - targetSpeed, current_speed_right)
-            elif speed_seperate:
-                speed_left = maintain_speed_PID_left.update(speed_seperate[0], current_speed_left)
-                speed_right = maintain_speed_PID_right.update(speed_seperate[1], current_speed_right)
+            else:
+                speed_left = speed_right = 0
+        elif speed_separate:
+            speed_left = maintain_speed_PID_left.update(speed_separate[0], current_speed_left)
+            speed_right = maintain_speed_PID_right.update(speed_separate[1], current_speed_right)
 
+        if speed_separate or targetSpeed != 0:
             if speed_left > 0:
                 speed_left = speed_left if speed_left > 0.15 else 0.15
             else:
@@ -119,11 +122,8 @@ def set_speed():
                 speed_right = speed_right if speed_right > 0.15 else 0.15
             else:
                 speed_right = speed_right if speed_right < -0.15 else -0.15
-        else:
-            speed_left = 0
-            speed_right = 0
 
-        print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
+        # print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
 
         # If the motors drop too low, they won't move. This brings up the
         # power level to 0.15 if it is lower than that.
@@ -182,7 +182,7 @@ with picamera.PiCamera() as camera:
 
                 grayscale_image_resized = cv2.resize(
                     grayscale_image, dsize=(
-                        int(image.shape[1] * 0.2), int(image.shape[0] * 0.2)
+                        int(image.shape[1] * 0.4), int(image.shape[0] * 0.4)
                     ),
                     interpolation=cv2.INTER_CUBIC
                 )
@@ -191,25 +191,31 @@ with picamera.PiCamera() as camera:
                 max_pixels_pos = np.argmax(pixels_sum)
                 max_pixels = pixels_sum[max_pixels_pos] / 255
 
-                if grayscale_image_resized.shape[1] * 0.8 <= max_pixels:
+                if grayscale_image_resized.shape[1] * 0.7 <= max_pixels:
                     print("Intersection spotted")
                     print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
 
                     print("Going through the intersection")
 
-                    speed_seperate = [1.2, 1.2]
-                    time.sleep(abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.0083)
+                    speed_separate = [1.2, 1.2]
+                    time.sleep((abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.0012) + 0.3)
 
-                    if intersection_turns == LEFT:
-                        print(f"Intersection Turn: {intersection_turns}")
-                        speed_seperate = [-0.5, 0.5]
-                        time.sleep(0.9)
-                        speed_seperate = []
-                    elif intersection_turns == RIGHT:
-                        print(f"Intersection Turn: {intersection_turns}")
-                        speed_seperate = [0.5, -0.5]
-                        time.sleep(0.9)
-                        speed_seperate = []
+                    if not towerFound:
+                        if intersection_turns == LEFT:
+                            print(f"Intersection Turn: {intersection_turns}")
+                            speed_separate = [-0.5, 0.5]
+                        elif intersection_turns == RIGHT:
+                            print(f"Intersection Turn: {intersection_turns}")
+                            speed_separate = [0.5, -0.5]
+                    else:
+                        if intersection_turns == RIGHT:
+                            print(f"Intersection Turn: {intersection_turns}")
+                            speed_separate = [-0.5, 0.5]
+                        elif intersection_turns == LEFT:
+                            print(f"Intersection Turn: {intersection_turns}")
+                            speed_separate = [0.5, -0.5]
+                    time.sleep(0.9)
+                    speed_separate = []
                     targetSpeed = 0
 
                     stream.seek(0)
@@ -221,14 +227,34 @@ with picamera.PiCamera() as camera:
 
                 if np.sum(grayscale_image) < 50 * 255:
                     print("Line Lost")
-                    end_program()
+                    speed_separate = [-1, -1]
+                    time.sleep(0.0125)
+                    speed_separate = []
 
+                    stream.seek(0)
+                    stream.truncate()
+                    continue
+                    # print("Line Lost")
+                    # end_program()
+
+                line_found = False
                 for current_y in range(height, 0, -20):
                     cropped_image = grayscale_image[current_y: current_y + 20, 0: -1]
                     if np.sum(cropped_image) > 20*255 and current_y + 20 < height:
+                        line_found = True
                         center_of_mass_y, center_of_mass_x = \
                             scipy.ndimage.center_of_mass(cropped_image)
                         break
+
+                if not line_found:
+                    print("Line Lost")
+                    speed_separate = [-1, -1]
+                    time.sleep(0.0125)
+                    speed_separate = []
+
+                    stream.seek(0)
+                    stream.truncate()
+                    continue
 
                 targetSpeed_tmp = rev_per_second.update(width/2, center_of_mass_x)
                 if targetSpeed_tmp > 0:
