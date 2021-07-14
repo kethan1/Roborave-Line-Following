@@ -33,8 +33,8 @@ image = None
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
         camera.resolution = (320, 240)
-        while True:
-            try:
+        try:
+            while True:
                 image, cropped_image = None, None
                 while image is None:
                     camera.capture(stream, 'bgr', use_video_port=True)
@@ -77,8 +77,8 @@ with picamera.PiCamera() as camera:
                     break
                 stream.seek(0)
                 stream.truncate()
-            except KeyboardInterrupt:
-                break
+        except KeyboardInterrupt:
+            pass
 
 
 cv2.destroyAllWindows()
