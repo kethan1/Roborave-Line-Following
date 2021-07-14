@@ -35,10 +35,8 @@ with picamera.PiCamera() as camera:
         camera.resolution = (320, 240)
         try:
             while True:
-                image, cropped_image = None, None
-                while image is None:
-                    camera.capture(stream, 'bgr', use_video_port=True)
-                    image = stream.array
+                camera.capture(stream, 'bgr', use_video_port=True)
+                image = stream.array
 
                 grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 _, black_and_white_image = cv2.threshold(
