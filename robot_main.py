@@ -184,7 +184,7 @@ with picamera.PiCamera() as camera:
                     grayscale_image, dsize=(
                         int(image.shape[1] * 0.4), int(image.shape[0] * 0.4)
                     ),
-                    interpolation=cv2.INTER_CUBIC
+                    interpolation=cv2.INTER_AREA
                 )
 
                 pixels_sum = np.sum(grayscale_image_resized, 1)
