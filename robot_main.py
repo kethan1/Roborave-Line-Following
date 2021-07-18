@@ -221,7 +221,7 @@ with picamera.PiCamera() as camera:
                         elif intersection_turns[intersection_turns_index] == RIGHT:
                             print(f"Intersection Turn: {intersection_turns}")
                             speed_separate = [0.5, -0.5]
-                    time.sleep(1)
+                    time.sleep(0.95)
                     speed_separate = []
                     targetSpeed = 0
 
