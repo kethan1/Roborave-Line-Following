@@ -11,17 +11,15 @@ class Encoder {
     /* Need a static callback to link with C. */
     static void callback(int gpio, int level, uint32_t tick, void *user);
 
+    /* This function releases the resources used by the decoder. */
     void cancelCallbacks(void);
-    /*
-        This function releases the resources used by the decoder.
-    */
 
     public:
-        Encoder(int aGpioA, int aGpioB);
         /*
             This function establishes a rotary encoder on gpioA and gpioB.
             When the encoder is turned the callback function is called.
         */
+        Encoder(int aGpioA, int aGpioB);
 
         int getSteps();
 

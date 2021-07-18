@@ -42,15 +42,14 @@ Encoder::Encoder(int aGpioA, int aGpioB) {
     gpioB = aGpioB;
     direction = 0;
 
-    levA = 0;
-    levB = 0;
+    levA, levB = 0, 0;
 
     steps = 0;
     lastGpio = -1;
     prevTicks = 0;
 
-    gpioSetMode(aGpioA, PI_INPUT);
-    gpioSetMode(aGpioB, PI_INPUT);
+    gpioSetMode(gpioA, PI_INPUT);
+    gpioSetMode(gpioB, PI_INPUT);
 
     /* pull up is needed as encoder common is grounded */
 

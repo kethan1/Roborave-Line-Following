@@ -3,6 +3,7 @@
 import sys
 import time
 import json
+import math
 # import timeit
 import threading
 
@@ -79,7 +80,8 @@ LEFT, RIGHT = 0, 1
 
 image, finish, targetSpeed, towerFound = None, False, 0, False
 speed_separate = []
-intersection_turns = LEFT
+intersection_turns = [RIGHT, LEFT, LEFT]
+intersection_turns_index = 0
 rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv")
 maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_left.csv")
 maintain_speed_PID_right = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_right.csv")
@@ -91,7 +93,7 @@ def imshow_debug(image_to_show, title):
 
 
 def set_speed():
-    global targetSpeed, speed_separate
+    global targetSpeed
     prevStepsLeft = prevStepsRight = prevTime = 0
 
     while not finish:
@@ -191,30 +193,37 @@ with picamera.PiCamera() as camera:
                 max_pixels_pos = np.argmax(pixels_sum)
                 max_pixels = pixels_sum[max_pixels_pos] / 255
 
-                if grayscale_image_resized.shape[1] * 0.7 <= max_pixels:
+                if grayscale_image_resized.shape[1] * 0.9 <= max_pixels:
                     print("Intersection spotted")
                     print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
 
                     print("Going through the intersection")
 
                     speed_separate = [1.2, 1.2]
-                    time.sleep((abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.0012) + 0.3)
+                    # need a mx + b equation because we need to move a so that
+                    # the start of the robot's camera is at the intersection,
+                    # and then move a certain amount forward so that the
+                    # center of mass of the robot is over the intersection
+                    time.sleep((abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.00068) + 0.25)
 
                     if not towerFound:
-                        if intersection_turns == LEFT:
+                        if intersection_turns[intersection_turns_index] == RIGHT:
                             print(f"Intersection Turn: {intersection_turns}")
                             speed_separate = [-0.5, 0.5]
-                        elif intersection_turns == RIGHT:
+                        elif intersection_turns[intersection_turns_index] == LEFT:
                             print(f"Intersection Turn: {intersection_turns}")
                             speed_separate = [0.5, -0.5]
                     else:
-                        if intersection_turns == RIGHT:
+                        if intersection_turns[intersection_turns_index] == LEFT:
                             print(f"Intersection Turn: {intersection_turns}")
                             speed_separate = [-0.5, 0.5]
-                        elif intersection_turns == LEFT:
+                        elif intersection_turns[intersection_turns_index] == RIGHT:
                             print(f"Intersection Turn: {intersection_turns}")
                             speed_separate = [0.5, -0.5]
-                    time.sleep(0.9)
+                    intersection_turns_index += 1
+                    if intersection_turns_index > len(intersection_turns) - 1:
+                        intersection_turns_index = len(intersection_turns) - 1
+                    time.sleep(1.1)
                     speed_separate = []
                     targetSpeed = 0
 
@@ -225,18 +234,6 @@ with picamera.PiCamera() as camera:
 
                 height, width = grayscale_image.shape
 
-                if np.sum(grayscale_image) < 50 * 255:
-                    print("Line Lost")
-                    speed_separate = [-1, -1]
-                    time.sleep(0.0125)
-                    speed_separate = []
-
-                    stream.seek(0)
-                    stream.truncate()
-                    continue
-                    # print("Line Lost")
-                    # end_program()
-
                 line_found = False
                 for current_y in range(height, 0, -20):
                     cropped_image = grayscale_image[current_y: current_y + 20, 0: -1]
@@ -246,10 +243,12 @@ with picamera.PiCamera() as camera:
                             scipy.ndimage.center_of_mass(cropped_image)
                         break
 
-                if not line_found:
+                if not line_found or (np.sum(grayscale_image) < 50 * 255):  # Criteria for line lost
                     print("Line Lost")
+                    targetSpeed = 0
+                    # Moving backwards until line found again
                     speed_separate = [-1, -1]
-                    time.sleep(0.0125)
+                    time.sleep(0.2)
                     speed_separate = []
 
                     stream.seek(0)
@@ -257,12 +256,18 @@ with picamera.PiCamera() as camera:
                     continue
 
                 targetSpeed_tmp = rev_per_second.update(width/2, center_of_mass_x)
-                if targetSpeed_tmp > 0:
-                    targetSpeed = targetSpeed_tmp if targetSpeed_tmp < 1.5 else 1.5
-                elif targetSpeed_tmp < 0:
-                    targetSpeed = targetSpeed_tmp if targetSpeed_tmp > -1.5 else -1.5
-                else:
-                    targetSpeed = 0
+                targetSpeed = targetSpeed_tmp if abs(targetSpeed_tmp) <= 1.4 \
+                    else math.copysign(1.4, targetSpeed_tmp)
+                # if abs(targetSpeed_tmp) > 1.4:
+                #     targetSpeed = math.copysign(1.4, targetSpeed_tmp)
+                # else:
+                #     targetSpeed = targetSpeed_tmp
+                # if targetSpeed_tmp > 0:
+                #     targetSpeed = targetSpeed_tmp if targetSpeed_tmp < 1.5 else 1.5
+                # elif targetSpeed_tmp < 0:
+                #     targetSpeed = targetSpeed_tmp if targetSpeed_tmp > -1.5 else -1.5
+                # else:
+                #     targetSpeed = 0
 
                 if not bl_wh:
                     imshow_debug(
@@ -276,7 +281,8 @@ with picamera.PiCamera() as camera:
                     )
                 else:
                     imshow_debug("Video Stream with Circle", cv2.circle(
-                            cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR), (
+                            cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR),
+                            (
                                 round(center_of_mass_x),
                                 current_y + round(center_of_mass_y)
                             ), 10, (0, 0, 255), 10
