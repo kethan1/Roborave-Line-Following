@@ -6,6 +6,7 @@ import json
 import math
 # import timeit
 import threading
+import os
 
 import cv2
 import numpy as np
@@ -59,7 +60,7 @@ if "--D" in sys.argv[1:]:
     D_VALUE = float(sys.argv[sys.argv.index("--D") + 1])
 
 if not debug and "--print-prod" not in sys.argv[1:]:
-    sys.stdout = None
+    sys.stdout = open(os.devnull, 'w')
 
 
 initialize_encoder()
@@ -204,7 +205,7 @@ with picamera.PiCamera() as camera:
                     # the start of the robot's camera is at the intersection,
                     # and then move a certain amount forward so that the
                     # center of mass of the robot is over the intersection
-                    time.sleep((abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.00068) + 0.25)
+                    time.sleep((abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.00057) + 0.15)
 
                     if not towerFound:
                         if intersection_turns[intersection_turns_index] == RIGHT:
@@ -220,12 +221,13 @@ with picamera.PiCamera() as camera:
                         elif intersection_turns[intersection_turns_index] == RIGHT:
                             print(f"Intersection Turn: {intersection_turns}")
                             speed_separate = [0.5, -0.5]
+                    time.sleep(1)
+                    speed_separate = []
+                    targetSpeed = 0
+
                     intersection_turns_index += 1
                     if intersection_turns_index > len(intersection_turns) - 1:
                         intersection_turns_index = len(intersection_turns) - 1
-                    time.sleep(1.1)
-                    speed_separate = []
-                    targetSpeed = 0
 
                     stream.seek(0)
                     stream.truncate()
