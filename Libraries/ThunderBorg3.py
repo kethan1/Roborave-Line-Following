@@ -364,8 +364,8 @@ SetMotor2(1)     -> motor 2 moving forward at 100% power
             self.RawWrite(command, [pwm])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending motor 2 drive level!')
+        except Exception as e:
+            self.Print(f'Failed sending motor 2 drive level! Exception:\n{e}')
 
 
     def GetMotor2(self):
@@ -425,8 +425,8 @@ SetMotor1(1)     -> motor 1 moving forward at 100% power
             self.RawWrite(command, [pwm])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending motor 1 drive level!')
+        except Exception as e:
+            self.Print(f'Failed sending motor 1 drive level! Exception:\n{e}')
 
 
     def GetMotor1(self):
@@ -500,8 +500,8 @@ Sets all motors to stopped, useful when ending a program
             self.RawWrite(COMMAND_ALL_OFF, [0])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending motors off command!')
+        except Exception as e:
+            self.Print(f'Failed sending motors off command! Exception:\n{e}')
 
 
     def SetLed1(self, r, g, b):
@@ -523,8 +523,8 @@ SetLed1(0.2, 0.0, 0.2) -> ThunderBorg LED dull purple
             self.RawWrite(COMMAND_SET_LED1, [levelR, levelG, levelB])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending colour for the ThunderBorg LED!')
+        except Exception as e:
+            self.Print(f'Failed sending colour for the ThunderBorg LED! Exception:\n{e}')
 
 
     def GetLed1(self):
@@ -542,8 +542,8 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_LED1, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading ThunderBorg LED colour!')
+        except Exception as e:
+            self.Print(f'Failed reading ThunderBorg LED colour! Exception:\n{e}')
             return
 
         r = i2cRecv[1] / float(PWM_MAX)
@@ -571,8 +571,8 @@ SetLed2(0.2, 0.0, 0.2) -> ThunderBorg Lid LED dull purple
             self.RawWrite(COMMAND_SET_LED2, [levelR, levelG, levelB])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending colour for the ThunderBorg Lid LED!')
+        except Exception as e:
+            self.Print(f'Failed sending colour for the ThunderBorg Lid LED! Exception:\n{e}')
 
 
     def GetLed2(self):
@@ -590,8 +590,8 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_LED2, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading ThunderBorg Lid LED colour!')
+        except Exception as e:
+            self.Print(f'Failed reading ThunderBorg Lid LED colour! Exception:\n{e}')
             return
 
         r = i2cRecv[1] / float(PWM_MAX)
@@ -619,8 +619,8 @@ SetLeds(0.2, 0.0, 0.2) -> Both LEDs dull purple
             self.RawWrite(COMMAND_SET_LEDS, [levelR, levelG, levelB])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending colour for both LEDs!')
+        except Exception as e:
+            self.Print(f'Failed sending colour for both LEDs! Exception:\n{e}')
 
 
     def SetLedShowBattery(self, state):

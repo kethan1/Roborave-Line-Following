@@ -17,6 +17,7 @@ import scipy.ndimage
 
 import Libraries.ThunderBorg3 as ThunderBorg
 from PID import PID
+from hall_effect_sensor import Hall_Effect_Sensor
 from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encoder
 
 
@@ -63,9 +64,16 @@ if not debug and "--print-prod" not in sys.argv[1:]:
     sys.stdout = open(os.devnull, 'w')
 
 
+def magnet_callback():
+    global speed_separate, targetSpeed
+    speed_separate, targetSpeed = [], 0
+    end_program()
+
+
 initialize_encoder()
 encoder_left = Encoder(*robot_config["Encoder_Left"])
 encoder_right = Encoder(*robot_config["Encoder_Right"])
+hall_effect_sensor = Hall_Effect_Sensor(16, magnet_callback)
 
 
 GPIO.setmode(GPIO.BCM)
