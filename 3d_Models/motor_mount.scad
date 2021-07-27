@@ -1,4 +1,4 @@
-$fn = 10;
+$fn = 300;
 
 color([0.8,0.8,0.8]) import("motor.stl");
 
@@ -11,16 +11,16 @@ difference() {
         cylinder(h=5, r=4);
     }
     translate([0, 8.5, -0.1]) {
-        cylinder(h=5, r=1.3);
+        cylinder(h=5, r=1.5);
     }
-    translate([0, -8.5, -0.1]) {
-        cylinder(h=5, r=1.3);
+    translate([0, -8.5, -0.3]) {
+        cylinder(h=15, r=1.5);
     }
     translate([8.5, 0, -0.1]) {
-        cylinder(h=5, r=1.3);
+        cylinder(h=5, r=1.5);
     }
     translate([-8.5, 0, -0.1]) {
-        cylinder(h=5, r=1.3);
+        cylinder(h=5, r=1.5);
     }
 }
 
@@ -56,10 +56,15 @@ module screw_tabs(positive_side=true, top=false) {
     z_of_translate = top ? -22 : -54 ;
     translate([x_of_translate, -15.75, z_of_translate]) {
         difference() {
-            cube([10, 3, 10]);
-            translate([4.5, 3.5, 5]) {
+            translate([positive_side ? 0: 10, 3, 0]) {
                 rotate([90, 0, 0]) {
-                    cylinder(h=4, r=2.3);
+                    cylinder(h=3, d=20);
+                }
+            }
+            // cube([10, 3, 10]);
+            translate([positive_side ? 4: 6, 3.5, 0]) {
+                rotate([90, 0, 0]) {
+                    cylinder(h=4, r=3.4);
                 }
             }
         }
