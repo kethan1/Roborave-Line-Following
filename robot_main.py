@@ -60,8 +60,8 @@ if "--I" in sys.argv[1:]:
 if "--D" in sys.argv[1:]:
     D_VALUE = float(sys.argv[sys.argv.index("--D") + 1])
 
-if not debug and "--print-prod" not in sys.argv[1:]:
-    sys.stdout = open(os.devnull, 'w')
+if not debug and "--print-prod" in sys.argv[1:]:
+    sys.stdout = None
 
 
 def magnet_callback():
