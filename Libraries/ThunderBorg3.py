@@ -132,7 +132,7 @@ Warning, this new I²C address will still be used after resetting the power on t
     if oldAddress < 0x0:
         found = ScanForThunderBorg(busNumber)
         if len(found) < 1:
-            print('No ThunderBorg boards found, cannot set a new I²C address!')
+            print('No ThunderBorg boards found, cannot set a new I²C address! Exception:\n{repr(e)}')
             return
         else:
             oldAddress = found[0]
@@ -383,8 +383,8 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_B, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading motor 2 drive level!')
+        except Exception as e:
+            self.Print(f'Failed reading motor 2 drive level! Exception:\n{repr(e)}')
             return
 
         power = float(i2cRecv[2]) / float(PWM_MAX)
@@ -444,8 +444,8 @@ e.g.
             i2cRecv = self.RawRead(COMMAND_GET_A, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading motor 1 drive level!')
+        except Exception as e:
+            self.Print(f'Failed reading motor 1 drive level! Exception:\n{repr(e)}')
             return
 
         power = float(i2cRecv[2]) / float(PWM_MAX)
@@ -486,8 +486,8 @@ SetMotors(1)     -> all motors are moving forward at 100% power
             self.RawWrite(command, [pwm])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending all motors drive level!')
+        except Exception as e:
+            self.Print(f'Failed sending all motors drive level! Exception:\n{repr(e)}')
 
 
     def MotorsOff(self):
@@ -699,8 +699,8 @@ The failsafe will turn the motors off unless it is commanded at least once every
             i2cRecv = self.RawRead(COMMAND_GET_FAILSAFE, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading communications failsafe state!')
+        except Exception as e:
+            self.Print(f'Failed reading communications failsafe state! Exception:\n{repr(e)}')
             return
 
         if i2cRecv[1] == COMMAND_VALUE_OFF:
@@ -732,8 +732,8 @@ For more details check the website at www.piborg.org/thunderborg and double chec
             i2cRecv = self.RawRead(COMMAND_GET_DRIVE_A_FAULT, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading the drive fault state for motor #1!')
+        except Exception as e:
+            self.Print(f'Failed reading the drive fault state for motor #1! Exception:\n{repr(e)}')
             return
 
         if i2cRecv[1] == COMMAND_VALUE_OFF:
@@ -765,8 +765,8 @@ For more details check the website at www.piborg.org/thunderborg and double chec
             i2cRecv = self.RawRead(COMMAND_GET_DRIVE_B_FAULT, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading the drive fault state for motor #2!')
+        except Exception as e:
+            self.Print(f'Failed reading the drive fault state for motor #2! Exception:\n{repr(e)}')
             return
 
         if i2cRecv[1] == COMMAND_VALUE_OFF:
@@ -786,8 +786,8 @@ Returns the value as a voltage based on the 3.3 V rail as a reference.
             i2cRecv = self.RawRead(COMMAND_GET_BATT_VOLT, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading battery level!')
+        except Exception as e:
+            self.Print(f'Failed reading battery level! Exception:\n{repr(e)}')
             return
 
         raw = (i2cRecv[1] << 8) + i2cRecv[2]
@@ -815,8 +815,8 @@ These values are stored in EEPROM and reloaded when the board is powered.
             time.sleep(0.2) # Wait for EEPROM write to complete
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending battery monitoring limits!')
+        except Exception as e:
+            self.Print(f'Failed sending battery monitoring limits! Exception:\n{repr(e)}')
 
 
     def GetBatteryMonitoringLimits(self):
@@ -831,8 +831,8 @@ The colours shown range from full red at minimum or below, yellow half way, and 
             i2cRecv = self.RawRead(COMMAND_GET_BATT_LIMITS, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading battery monitoring limits!')
+        except Exception as e:
+            self.Print(f'Failed reading battery monitoring limits! Exception:\n{repr(e)}')
             return
 
         rawMin = i2cRecv[1]
@@ -865,8 +865,8 @@ to the LEDs.
             self.RawWrite(COMMAND_WRITE_EXTERNAL_LED, [b0, b1, b2, b3])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending word for the external LEDs!')
+        except Exception as e:
+            self.Print(f'Failed sending word for the external LEDs! Exception:\n{repr(e)}')
 
 
     def SetExternalLedColours(self, colours):
