@@ -11,16 +11,16 @@ difference() {
         cylinder(h=5, r=3.8);
     }
     translate([0, 8.5, -0.1]) {
-        cylinder(h=5, r=2.3);
+        cylinder(h=5, r=1.75);
     }
     translate([0, -8.5, -0.3]) {
-        cylinder(h=15, r=2.3);
+        cylinder(h=15, r=1.75);
     }
     translate([8.5, 0, -0.1]) {
-        cylinder(h=5, r=2.3);
+        cylinder(h=5, r=1.75);
     }
     translate([-8.5, 0, -0.1]) {
-        cylinder(h=5, r=2.3);
+        cylinder(h=5, r=1.75);
     }
 }
 

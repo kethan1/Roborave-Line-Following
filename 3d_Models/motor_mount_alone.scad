@@ -1,5 +1,6 @@
 $fn = 300;
 
+
 difference() {
     translate([-(33 / 2), -15.5, 0]) {
         cube([33, 30, 3]);
@@ -8,16 +9,16 @@ difference() {
         cylinder(h=5, r=3.8);
     }
     translate([0, 8.5, -0.1]) {
-        cylinder(h=5, r=2.3);
+        cylinder(h=5, r=1.75);
     }
     translate([0, -8.5, -0.3]) {
-        cylinder(h=15, r=2.3);
+        cylinder(h=15, r=1.75);
     }
     translate([8.5, 0, -0.1]) {
-        cylinder(h=5, r=2.3);
+        cylinder(h=5, r=1.75);
     }
     translate([-8.5, 0, -0.1]) {
-        cylinder(h=5, r=2.3);
+        cylinder(h=5, r=1.75);
     }
 }
 
