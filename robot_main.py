@@ -6,7 +6,6 @@ import json
 import math
 # import timeit
 import threading
-import os
 
 import cv2
 import numpy as np
@@ -19,6 +18,7 @@ import Libraries.ThunderBorg3 as ThunderBorg
 from PID import PID
 from hall_effect_sensor import Hall_Effect_Sensor
 from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encoder
+from motor_speed_control import MotorSpeedControl
 
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
@@ -64,16 +64,17 @@ if not debug and "--print-prod" in sys.argv[1:]:
     sys.stdout = None
 
 
-def magnet_callback():
+def magnet_callback(speed_control_class):
     global speed_separate, targetSpeed
-    speed_separate, targetSpeed = [], 0
+    speed_control_class.speed_control_class(0)
+    speed_control_class.targetSpeed = []
     end_program()
 
 
 initialize_encoder()
 encoder_left = Encoder(*robot_config["Encoder_Left"])
 encoder_right = Encoder(*robot_config["Encoder_Right"])
-hall_effect_sensor = Hall_Effect_Sensor(16, magnet_callback)
+hall_effect_sensor = Hall_Effect_Sensor(16, lambda: magnet_callback(motor_speed_control))
 
 
 GPIO.setmode(GPIO.BCM)
@@ -94,6 +95,7 @@ intersection_turns_index = 0
 rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv")
 maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_left.csv")
 maintain_speed_PID_right = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_right.csv")
+motor_speed_control = MotorSpeedControl(BASE_SPEED)
 
 
 def imshow_debug(image_to_show, title):
@@ -101,7 +103,7 @@ def imshow_debug(image_to_show, title):
         cv2.imshow(image_to_show, title)
 
 
-def set_speed():
+def set_speed(speed_control_class):
     global targetSpeed
     prevStepsLeft = prevStepsRight = prevTime = 0
 
@@ -115,7 +117,7 @@ def set_speed():
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
         if not speed_separate:
-            if targetSpeed != 0:
+            if speed_control_class.targetSpeed != 0 and not speed_control_class.speed_separate:
                 speed_left = maintain_speed_PID_left.update(BASE_SPEED + targetSpeed, current_speed_left)
                 speed_right = maintain_speed_PID_right.update(BASE_SPEED - targetSpeed, current_speed_right)
             else:
@@ -149,7 +151,7 @@ def set_speed():
     maintain_speed_PID_right.close()
 
 
-set_speed_thread = threading.Thread(target=set_speed)
+set_speed_thread = threading.Thread(target=set_speed, args=(motor_speed_control,))
 
 
 def end_program():
@@ -265,19 +267,7 @@ with picamera.PiCamera() as camera:
                     stream.truncate()
                     continue
 
-                targetSpeed_tmp = rev_per_second.update(width/2, center_of_mass_x)
-                targetSpeed = targetSpeed_tmp if abs(targetSpeed_tmp) <= 1.4 \
-                    else math.copysign(1.4, targetSpeed_tmp)
-                # if abs(targetSpeed_tmp) > 1.4:
-                #     targetSpeed = math.copysign(1.4, targetSpeed_tmp)
-                # else:
-                #     targetSpeed = targetSpeed_tmp
-                # if targetSpeed_tmp > 0:
-                #     targetSpeed = targetSpeed_tmp if targetSpeed_tmp < 1.5 else 1.5
-                # elif targetSpeed_tmp < 0:
-                #     targetSpeed = targetSpeed_tmp if targetSpeed_tmp > -1.5 else -1.5
-                # else:
-                #     targetSpeed = 0
+                motor_speed_control.set_target_speed(rev_per_second.update(width/2, center_of_mass_x))
 
                 if not bl_wh:
                     imshow_debug(
