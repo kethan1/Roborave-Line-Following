@@ -620,7 +620,7 @@ SetLeds(0.2, 0.0, 0.2) -> Both LEDs dull purple
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending colour for both LEDs! Exception:\n{e}')
+            self.Print(f'Failed sending colour for both LEDs! Exception:\n{e.__repr__()}')
 
 
     def SetLedShowBattery(self, state):
@@ -640,8 +640,8 @@ This sweeps from fully green for maximum voltage (35 V) to fully red for minimum
             self.RawWrite(COMMAND_SET_LED_BATT_MON, [level])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending LED battery monitoring state!')
+        except Exception as e:
+            self.Print(f'Failed sending LED battery monitoring state! Exception:\n{e.__repr__()}')
 
 
     def GetLedShowBattery(self):
@@ -656,8 +656,8 @@ This sweeps from fully green for maximum voltage (35 V) to fully red for minimum
             i2cRecv = self.RawRead(COMMAND_GET_LED_BATT_MON, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed reading LED battery monitoring state!')
+        except Exception as e:
+            self.Print(f'Failed reading LED battery monitoring state! Exception:\n{e.__repr__()}')
             return
 
         if i2cRecv[1] == COMMAND_VALUE_OFF:
@@ -684,8 +684,8 @@ The failsafe is disabled at power on
             self.RawWrite(COMMAND_SET_FAILSAFE, [level])
         except KeyboardInterrupt:
             raise
-        except:
-            self.Print('Failed sending communications failsafe state!')
+        except Exception as e:
+            self.Print(f'Failed sending communications failsafe state! Exception:\n{e.__repr__()}')
 
 
     def GetCommsFailsafe(self):

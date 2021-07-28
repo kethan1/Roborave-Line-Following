@@ -202,7 +202,7 @@ with picamera.PiCamera() as camera:
                 max_pixels_pos = np.argmax(pixels_sum)
                 max_pixels = pixels_sum[max_pixels_pos] / 255
 
-                if grayscale_image_resized.shape[1] * 0.9 <= max_pixels:
+                if grayscale_image_resized.shape[1] * 0.75 <= max_pixels:
                     print("Intersection spotted")
                     print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
 
