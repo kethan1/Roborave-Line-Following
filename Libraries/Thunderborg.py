@@ -1,5 +1,5 @@
-#!/usr/bin/env python
-# coding: latin-1
+#!/usr/bin/env python3
+
 """
 This module is designed to communicate with the ThunderBorg
 
