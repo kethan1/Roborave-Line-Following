@@ -898,9 +898,9 @@ printFunction           Function reference to call when printing text, if None "
         Displays the names and descriptions of the various functions and settings provided
         """
         funcList = [ThunderBorg.__dict__.get(a) for a in dir(ThunderBorg) if isinstance(ThunderBorg.__dict__.get(a), types.FunctionType)]
-        funcListSorted = sorted(funcList, key = lambda x: x.func_code.co_firstlineno)
+        funcListSorted = sorted(funcList, key = lambda x: x.__name__)
 
         print(self.__doc__)
-        print
+        print()
         for func in funcListSorted:
-            print('=== %s === %s' % (func.func_name, func.func_doc))
+            print('==== %s ==== %s' % (func.__name__, '\n'.join([line.strip() for line in func.__doc__.split("\n")])))
