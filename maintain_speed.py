@@ -2,7 +2,7 @@
 
 from PID import PID
 from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encoder
-import Libraries.ThunderBorg3 as ThunderBorg
+import Libraries.Thunderborg as ThunderBorg
 
 
 import time

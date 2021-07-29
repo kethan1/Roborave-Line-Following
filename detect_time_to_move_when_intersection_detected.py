@@ -13,7 +13,7 @@ import picamera.array
 import RPi.GPIO as GPIO
 import scipy.ndimage
 
-import Libraries.ThunderBorg3 as ThunderBorg
+import Libraries.Thunderborg as ThunderBorg
 from PID import PID
 from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize
 

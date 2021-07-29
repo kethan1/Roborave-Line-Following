@@ -9,7 +9,7 @@ TB = ThunderBorg.ThunderBorg()
 TB.Init()
 # User code here, use TB to control the board
 
-Multiple boards can be used when configured with different I²C addresses by creating multiple instances, e.g.
+Multiple boards can be used when configured with different I2C addresses by creating multiple instances, e.g.
 import ThunderBorg
 TB1 = ThunderBorg.ThunderBorg()
 TB2 = ThunderBorg.ThunderBorg()
@@ -83,11 +83,11 @@ def ScanForThunderBorg(busNumber=1):
     """
 ScanForThunderBorg([busNumber])
 
-Scans the I²C bus for a ThunderBorg boards and returns a list of all usable addresses
-The busNumber if supplied is which I²C bus to scan, 0 for Rev 1 boards, 1 for Rev 2 boards, if not supplied the default is 1
+Scans the I2C bus for a ThunderBorg boards and returns a list of all usable addresses
+The busNumber if supplied is which I2C bus to scan, 0 for Rev 1 boards, 1 for Rev 2 boards, if not supplied the default is 1
     """
     found = []
-    print('Scanning I²C bus #%d' % (busNumber))
+    print('Scanning I2C bus #%d' % (busNumber))
     bus = ThunderBorg()
     for address in range(0x03, 0x78, 1):
         try:
@@ -118,25 +118,25 @@ def SetNewAddress(newAddress, oldAddress = -1, busNumber = 1):
     """
 SetNewAddress(newAddress, [oldAddress], [busNumber])
 
-Scans the I²C bus for the first ThunderBorg and sets it to a new I2C address
+Scans the I2C bus for the first ThunderBorg and sets it to a new I2C address
 If oldAddress is supplied it will change the address of the board at that address rather than scanning the bus
-The busNumber if supplied is which I²C bus to scan, 0 for Rev 1 boards, 1 for Rev 2 boards, if not supplied the default is 1
-Warning, this new I²C address will still be used after resetting the power on the device
+The busNumber if supplied is which I2C bus to scan, 0 for Rev 1 boards, 1 for Rev 2 boards, if not supplied the default is 1
+Warning, this new I2C address will still be used after resetting the power on the device
     """
     if newAddress < 0x03:
-        print('Error, I²C addresses below 3 (0x03) are reserved, use an address between 3 (0x03) and 119 (0x77)')
+        print('Error, I2C addresses below 3 (0x03) are reserved, use an address between 3 (0x03) and 119 (0x77)')
         return
     elif newAddress > 0x77:
-        print('Error, I²C addresses above 119 (0x77) are reserved, use an address between 3 (0x03) and 119 (0x77)')
+        print('Error, I2C addresses above 119 (0x77) are reserved, use an address between 3 (0x03) and 119 (0x77)')
         return
     if oldAddress < 0x0:
         found = ScanForThunderBorg(busNumber)
         if len(found) < 1:
-            print('No ThunderBorg boards found, cannot set a new I²C address!')
+            print('No ThunderBorg boards found, cannot set a new I2C address!')
             return
         else:
             oldAddress = found[0]
-    print('Changing I²C address from %02X to %02X (bus #%d)' % (oldAddress, newAddress, busNumber))
+    print('Changing I2C address from %02X to %02X (bus #%d)' % (oldAddress, newAddress, busNumber))
     bus = ThunderBorg()
     bus.InitBusOnly(busNumber, oldAddress)
     try:
@@ -179,9 +179,9 @@ Warning, this new I²C address will still be used after resetting the power on t
             foundChip = False
             print('Missing ThunderBorg at %02X' % (newAddress))
     if foundChip:
-        print('New I²C address of %02X set successfully' % (newAddress))
+        print('New I2C address of %02X set successfully' % (newAddress))
     else:
-        print('Failed to set new I²C address...')
+        print('Failed to set new I2C address...')
 
 
 # Class used to control ThunderBorg
@@ -189,16 +189,16 @@ class ThunderBorg:
     """
 This module is designed to communicate with the ThunderBorg
 
-busNumber               I²C bus on which the ThunderBorg is attached (Rev 1 is bus 0, Rev 2 is bus 1)
-bus                     the smbus object used to talk to the I²C bus
-i2cAddress              The I²C address of the ThunderBorg chip to control
+busNumber               I2C bus on which the ThunderBorg is attached (Rev 1 is bus 0, Rev 2 is bus 1)
+bus                     the smbus object used to talk to the I2C bus
+i2cAddress              The I2C address of the ThunderBorg chip to control
 foundChip               True if the ThunderBorg chip can be seen, False otherwise
 printFunction           Function reference to call when printing text, if None "print" is used
     """
 
     # Shared values used by this class
     busNumber     = 1                     # Check here for Rev 1 vs Rev 2 and select the correct bus
-    i2cAddress    = I2C_ID_THUNDERBORG    # I²C address, override for a different address
+    i2cAddress    = I2C_ID_THUNDERBORG    # I2C address, override for a different address
     foundChip     = False
     printFunction = None
     i2cWrite      = None
@@ -206,12 +206,12 @@ printFunction           Function reference to call when printing text, if None "
 
     def RawWrite(self, command, data):
         """
-RawWrite(command, data)
+        RawWrite(command, data)
 
-Sends a raw command on the I2C bus to the ThunderBorg
-Command codes can be found at the top of ThunderBorg.py, data is a list of 0 or more byte values
+        Sends a raw command on the I2C bus to the ThunderBorg
+        Command codes can be found at the top of ThunderBorg.py, data is a list of 0 or more byte values
 
-Under most circumstances you should use the appropriate function instead of RawWrite
+        Under most circumstances you should use the appropriate function instead of RawWrite
         """
         rawOutput = [command]
         rawOutput.extend(data)
@@ -220,15 +220,15 @@ Under most circumstances you should use the appropriate function instead of RawW
 
     def RawRead(self, command, length, retryCount = 3):
         """
-RawRead(command, length, [retryCount])
+        RawRead(command, length, [retryCount])
 
-Reads data back from the ThunderBorg after sending a GET command
-Command codes can be found at the top of ThunderBorg.py, length is the number of bytes to read back
+        Reads data back from the ThunderBorg after sending a GET command
+        Command codes can be found at the top of ThunderBorg.py, length is the number of bytes to read back
 
-The function checks that the first byte read back matches the requested command
-If it does not it will retry the request until retryCount is exhausted (default is 3 times)
+        The function checks that the first byte read back matches the requested command
+        If it does not it will retry the request until retryCount is exhausted (default is 3 times)
 
-Under most circumstances you should use the appropriate function instead of RawRead
+        Under most circumstances you should use the appropriate function instead of RawRead
         """
         while retryCount > 0:
             self.RawWrite(command, [])
@@ -247,10 +247,10 @@ Under most circumstances you should use the appropriate function instead of RawR
 
     def InitBusOnly(self, busNumber, address):
         """
-InitBusOnly(busNumber, address)
+        InitBusOnly(busNumber, address)
 
-Prepare the I2C driver for talking to a ThunderBorg on the specified bus and I2C address
-This call does not check the board is present or working, under most circumstances use Init() instead
+        Prepare the I2C driver for talking to a ThunderBorg on the specified bus and I2C address
+        This call does not check the board is present or working, under most circumstances use Init() instead
         """
         self.busNumber = busNumber
         self.i2cAddress = address
@@ -262,9 +262,9 @@ This call does not check the board is present or working, under most circumstanc
 
     def Print(self, message):
         """
-Print(message)
+        Print(message)
 
-Wrapper used by the ThunderBorg instance to print(messages, will call printFunction if set, print otherwise)
+        Wrapper used by the ThunderBorg instance to print(messages, will call printFunction if set, print otherwise)
         """
         if self.printFunction == None:
             print(message)
@@ -274,23 +274,25 @@ Wrapper used by the ThunderBorg instance to print(messages, will call printFunct
 
     def NoPrint(self, message):
         """
-NoPrint(message)
+        NoPrint(message)
 
-Does nothing, intended for disabling diagnostic printout by using:
-TB = ThunderBorg.ThunderBorg()
-TB.printFunction = TB.NoPrint
+        Does nothing, intended for disabling diagnostic printout by using:
+        TB = ThunderBorg.ThunderBorg()
+        TB.printFunction = TB.NoPrint
         """
         pass
 
 
     def Init(self, tryOtherBus = False):
         """
-Init([tryOtherBus])
+        Init([tryOtherBus])
 
-Prepare the I2C driver for talking to the ThunderBorg
+        Prepare the I2C driver for talking to the ThunderBorg
 
-If tryOtherBus is True, this function will attempt to use the other bus if the ThunderBorg devices can not be found on the current busNumber
-    This is only really useful for early Raspberry Pi models!
+        If tryOtherBus is True, this function will attempt to use the other bus if the
+        ThunderBorg devices can not be found on the current busNumber
+        
+        This is only really useful for early Raspberry Pi models!
         """
         self.Print('Loading ThunderBorg on bus %d, address %02X' % (self.busNumber, self.i2cAddress))
 
@@ -338,14 +340,14 @@ If tryOtherBus is True, this function will attempt to use the other bus if the T
 
     def SetMotor2(self, power):
         """
-SetMotor2(power)
+        SetMotor2(power)
 
-Sets the drive level for motor 2, from +1 to -1.
-e.g.
-SetMotor2(0)     -> motor 2 is stopped
-SetMotor2(0.75)  -> motor 2 moving forward at 75% power
-SetMotor2(-0.5)  -> motor 2 moving reverse at 50% power
-SetMotor2(1)     -> motor 2 moving forward at 100% power
+        Sets the drive level for motor 2, from +1 to -1.
+        e.g.
+        SetMotor2(0)     -> motor 2 is stopped
+        SetMotor2(0.75)  -> motor 2 moving forward at 75% power
+        SetMotor2(-0.5)  -> motor 2 moving reverse at 50% power
+        SetMotor2(1)     -> motor 2 moving forward at 100% power
         """
         if power < 0:
             # Reverse
@@ -370,14 +372,14 @@ SetMotor2(1)     -> motor 2 moving forward at 100% power
 
     def GetMotor2(self):
         """
-power = GetMotor2()
+        power = GetMotor2()
 
-Gets the drive level for motor 2, from +1 to -1.
-e.g.
-0     -> motor 2 is stopped
-0.75  -> motor 2 moving forward at 75% power
--0.5  -> motor 2 moving reverse at 50% power
-1     -> motor 2 moving forward at 100% power
+        Gets the drive level for motor 2, from +1 to -1.
+        e.g.
+        0     -> motor 2 is stopped
+        0.75  -> motor 2 moving forward at 75% power
+        -0.5  -> motor 2 moving reverse at 50% power
+        1     -> motor 2 moving forward at 100% power
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_B, I2C_MAX_LEN)
@@ -399,14 +401,14 @@ e.g.
 
     def SetMotor1(self, power):
         """
-SetMotor1(power)
+        SetMotor1(power)
 
-Sets the drive level for motor 1, from +1 to -1.
-e.g.
-SetMotor1(0)     -> motor 1 is stopped
-SetMotor1(0.75)  -> motor 1 moving forward at 75% power
-SetMotor1(-0.5)  -> motor 1 moving reverse at 50% power
-SetMotor1(1)     -> motor 1 moving forward at 100% power
+        Sets the drive level for motor 1, from +1 to -1.
+        e.g.
+        SetMotor1(0)     -> motor 1 is stopped
+        SetMotor1(0.75)  -> motor 1 moving forward at 75% power
+        SetMotor1(-0.5)  -> motor 1 moving reverse at 50% power
+        SetMotor1(1)     -> motor 1 moving forward at 100% power
         """
         if power < 0:
             # Reverse
@@ -431,14 +433,14 @@ SetMotor1(1)     -> motor 1 moving forward at 100% power
 
     def GetMotor1(self):
         """
-power = GetMotor1()
+        power = GetMotor1()
 
-Gets the drive level for motor 1, from +1 to -1.
-e.g.
-0     -> motor 1 is stopped
-0.75  -> motor 1 moving forward at 75% power
--0.5  -> motor 1 moving reverse at 50% power
-1     -> motor 1 moving forward at 100% power
+        Gets the drive level for motor 1, from +1 to -1.
+        e.g.
+        0     -> motor 1 is stopped
+        0.75  -> motor 1 moving forward at 75% power
+        -0.5  -> motor 1 moving reverse at 50% power
+        1     -> motor 1 moving forward at 100% power
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_A, I2C_MAX_LEN)
@@ -460,14 +462,14 @@ e.g.
 
     def SetMotors(self, power):
         """
-SetMotors(power)
+        SetMotors(power)
 
-Sets the drive level for all motors, from +1 to -1.
-e.g.
-SetMotors(0)     -> all motors are stopped
-SetMotors(0.75)  -> all motors are moving forward at 75% power
-SetMotors(-0.5)  -> all motors are moving reverse at 50% power
-SetMotors(1)     -> all motors are moving forward at 100% power
+        Sets the drive level for all motors, from +1 to -1.
+        e.g.
+        SetMotors(0)     -> all motors are stopped
+        SetMotors(0.75)  -> all motors are moving forward at 75% power
+        SetMotors(-0.5)  -> all motors are moving reverse at 50% power
+        SetMotors(1)     -> all motors are moving forward at 100% power
         """
         if power < 0:
             # Reverse
@@ -492,9 +494,9 @@ SetMotors(1)     -> all motors are moving forward at 100% power
 
     def MotorsOff(self):
         """
-MotorsOff()
+        MotorsOff()
 
-Sets all motors to stopped, useful when ending a program
+        Sets all motors to stopped, useful when ending a program
         """
         try:
             self.RawWrite(COMMAND_ALL_OFF, [0])
@@ -506,14 +508,14 @@ Sets all motors to stopped, useful when ending a program
 
     def SetLed1(self, r, g, b):
         """
-SetLed1(r, g, b)
+        SetLed1(r, g, b)
 
-Sets the current colour of the ThunderBorg LED. r, g, b may each be between 0 and 1
-e.g.
-SetLed1(0, 0, 0)       -> ThunderBorg LED off
-SetLed1(1, 1, 1)       -> ThunderBorg LED full white
-SetLed1(1.0, 0.5, 0.0) -> ThunderBorg LED bright orange
-SetLed1(0.2, 0.0, 0.2) -> ThunderBorg LED dull purple
+        Sets the current colour of the ThunderBorg LED. r, g, b may each be between 0 and 1
+        e.g.
+        SetLed1(0, 0, 0)       -> ThunderBorg LED off
+        SetLed1(1, 1, 1)       -> ThunderBorg LED full white
+        SetLed1(1.0, 0.5, 0.0) -> ThunderBorg LED bright orange
+        SetLed1(0.2, 0.0, 0.2) -> ThunderBorg LED dull purple
         """
         levelR = max(0, min(PWM_MAX, int(r * PWM_MAX)))
         levelG = max(0, min(PWM_MAX, int(g * PWM_MAX)))
@@ -529,14 +531,14 @@ SetLed1(0.2, 0.0, 0.2) -> ThunderBorg LED dull purple
 
     def GetLed1(self):
         """
-r, g, b = GetLed1()
+        r, g, b = GetLed1()
 
-Gets the current colour of the ThunderBorg LED. r, g, b may each be between 0 and 1
-e.g.
-0, 0, 0       -> ThunderBorg LED off
-1, 1, 1       -> ThunderBorg LED full white
-1.0, 0.5, 0.0 -> ThunderBorg LED bright orange
-0.2, 0.0, 0.2 -> ThunderBorg LED dull purple
+        Gets the current colour of the ThunderBorg LED. r, g, b may each be between 0 and 1
+        e.g.
+        0, 0, 0       -> ThunderBorg LED off
+        1, 1, 1       -> ThunderBorg LED full white
+        1.0, 0.5, 0.0 -> ThunderBorg LED bright orange
+        0.2, 0.0, 0.2 -> ThunderBorg LED dull purple
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_LED1, I2C_MAX_LEN)
@@ -554,14 +556,14 @@ e.g.
 
     def SetLed2(self, r, g, b):
         """
-SetLed2(r, g, b)
+        SetLed2(r, g, b)
 
-Sets the current colour of the ThunderBorg Lid LED. r, g, b may each be between 0 and 1
-e.g.
-SetLed2(0, 0, 0)       -> ThunderBorg Lid LED off
-SetLed2(1, 1, 1)       -> ThunderBorg Lid LED full white
-SetLed2(1.0, 0.5, 0.0) -> ThunderBorg Lid LED bright orange
-SetLed2(0.2, 0.0, 0.2) -> ThunderBorg Lid LED dull purple
+        Sets the current colour of the ThunderBorg Lid LED. r, g, b may each be between 0 and 1
+        e.g.
+        SetLed2(0, 0, 0)       -> ThunderBorg Lid LED off
+        SetLed2(1, 1, 1)       -> ThunderBorg Lid LED full white
+        SetLed2(1.0, 0.5, 0.0) -> ThunderBorg Lid LED bright orange
+        SetLed2(0.2, 0.0, 0.2) -> ThunderBorg Lid LED dull purple
         """
         levelR = max(0, min(PWM_MAX, int(r * PWM_MAX)))
         levelG = max(0, min(PWM_MAX, int(g * PWM_MAX)))
@@ -577,14 +579,14 @@ SetLed2(0.2, 0.0, 0.2) -> ThunderBorg Lid LED dull purple
 
     def GetLed2(self):
         """
-r, g, b = GetLed2()
+        r, g, b = GetLed2()
 
-Gets the current colour of the ThunderBorg Lid LED. r, g, b may each be between 0 and 1
-e.g.
-0, 0, 0       -> ThunderBorg Lid LED off
-1, 1, 1       -> ThunderBorg Lid LED full white
-1.0, 0.5, 0.0 -> ThunderBorg Lid LED bright orange
-0.2, 0.0, 0.2 -> ThunderBorg Lid LED dull purple
+        Gets the current colour of the ThunderBorg Lid LED. r, g, b may each be between 0 and 1
+        e.g.
+        0, 0, 0       -> ThunderBorg Lid LED off
+        1, 1, 1       -> ThunderBorg Lid LED full white
+        1.0, 0.5, 0.0 -> ThunderBorg Lid LED bright orange
+        0.2, 0.0, 0.2 -> ThunderBorg Lid LED dull purple
         """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_LED2, I2C_MAX_LEN)
@@ -602,14 +604,14 @@ e.g.
 
     def SetLeds(self, r, g, b):
         """
-SetLeds(r, g, b)
+        SetLeds(r, g, b)
 
-Sets the current colour of both LEDs. r, g, b may each be between 0 and 1
-e.g.
-SetLeds(0, 0, 0)       -> Both LEDs off
-SetLeds(1, 1, 1)       -> Both LEDs full white
-SetLeds(1.0, 0.5, 0.0) -> Both LEDs bright orange
-SetLeds(0.2, 0.0, 0.2) -> Both LEDs dull purple
+        Sets the current colour of both LEDs. r, g, b may each be between 0 and 1
+        e.g.
+        SetLeds(0, 0, 0)       -> Both LEDs off
+        SetLeds(1, 1, 1)       -> Both LEDs full white
+        SetLeds(1.0, 0.5, 0.0) -> Both LEDs bright orange
+        SetLeds(0.2, 0.0, 0.2) -> Both LEDs dull purple
         """
         levelR = max(0, min(PWM_MAX, int(r * PWM_MAX)))
         levelG = max(0, min(PWM_MAX, int(g * PWM_MAX)))
@@ -625,11 +627,11 @@ SetLeds(0.2, 0.0, 0.2) -> Both LEDs dull purple
 
     def SetLedShowBattery(self, state):
         """
-SetLedShowBattery(state)
+        SetLedShowBattery(state)
 
-Sets the system to enable or disable the LEDs showing the current battery level
-If enabled the LED colours will be ignored and will use the current battery reading instead
-This sweeps from fully green for maximum voltage (35 V) to fully red for minimum voltage (7 V)
+        Sets the system to enable or disable the LEDs showing the current battery level
+        If enabled the LED colours will be ignored and will use the current battery reading instead
+        This sweeps from fully green for maximum voltage (35 V) to fully red for minimum voltage (7 V)
         """
         if state:
             level = COMMAND_VALUE_ON
@@ -646,11 +648,11 @@ This sweeps from fully green for maximum voltage (35 V) to fully red for minimum
 
     def GetLedShowBattery(self):
         """
-state = GetLedShowBattery()
+        state = GetLedShowBattery()
 
-Gets if the system is using the LEDs to show the current battery level, true for enabled, false for disabled
-If enabled the LED colours will be ignored and will use the current battery reading instead
-This sweeps from fully green for maximum voltage (35 V) to fully red for minimum voltage (7 V)
+        Gets if the system is using the LEDs to show the current battery level, true for enabled, false for disabled
+        If enabled the LED colours will be ignored and will use the current battery reading instead
+        This sweeps from fully green for maximum voltage (35 V) to fully red for minimum voltage (7 V)
         """ 
         try:
             i2cRecv = self.RawRead(COMMAND_GET_LED_BATT_MON, I2C_MAX_LEN)
@@ -668,12 +670,12 @@ This sweeps from fully green for maximum voltage (35 V) to fully red for minimum
 
     def SetCommsFailsafe(self, state):
         """
-SetCommsFailsafe(state)
+        SetCommsFailsafe(state)
 
-Sets the system to enable or disable the communications failsafe
-The failsafe will turn the motors off unless it is commanded at least once every 1/4 of a second
-Set to True to enable this failsafe, set to False to disable this failsafe
-The failsafe is disabled at power on
+        Sets the system to enable or disable the communications failsafe
+        The failsafe will turn the motors off unless it is commanded at least once every 1/4 of a second
+        Set to True to enable this failsafe, set to False to disable this failsafe
+        The failsafe is disabled at power on
         """
         if state:
             level = COMMAND_VALUE_ON
@@ -690,10 +692,10 @@ The failsafe is disabled at power on
 
     def GetCommsFailsafe(self):
         """
-state = GetCommsFailsafe()
+        state = GetCommsFailsafe()
 
-Read the current system state of the communications failsafe, True for enabled, False for disabled
-The failsafe will turn the motors off unless it is commanded at least once every 1/4 of a second
+        Read the current system state of the communications failsafe, True for enabled, False for disabled
+        The failsafe will turn the motors off unless it is commanded at least once every 1/4 of a second
         """ 
         try:
             i2cRecv = self.RawRead(COMMAND_GET_FAILSAFE, I2C_MAX_LEN)
@@ -711,22 +713,22 @@ The failsafe will turn the motors off unless it is commanded at least once every
 
     def GetDriveFault1(self):
         """
-state = GetDriveFault1()
+        state = GetDriveFault1()
 
-Reads the motor drive fault state for motor #1, False for no problems, True for a fault has been detected
-Faults may indicate power problems, such as under-voltage (not enough power), and may be cleared by setting a lower drive power
-If a fault is persistent, it repeatably occurs when trying to control the board, this may indicate a wiring problem such as:
-    * The supply is not powerful enough for the motors
-        The board has a bare minimum requirement of 6V to operate correctly
-        A recommended minimum supply of 7.2V should be sufficient for smaller motors
-    * The + and - connections for motor #1 are connected to each other
-    * Either + or - is connected to ground (GND, also known as 0V or earth)
-    * Either + or - is connected to the power supply (V+, directly to the battery or power pack)
-    * One of the motors may be damaged
-Faults will self-clear, they do not need to be reset, however some faults require both motors to be moving at less than 100% to clear
-The easiest way to check is to put both motors at a low power setting which is high enough for them to rotate easily, such as 30%
-Note that the fault state may be true at power up, this is normal and should clear when both motors have been driven
-For more details check the website at www.piborg.org/thunderborg and double check the wiring instructions
+        Reads the motor drive fault state for motor #1, False for no problems, True for a fault has been detected
+        Faults may indicate power problems, such as under-voltage (not enough power), and may be cleared by setting a lower drive power
+        If a fault is persistent, it repeatably occurs when trying to control the board, this may indicate a wiring problem such as:
+            * The supply is not powerful enough for the motors
+                The board has a bare minimum requirement of 6V to operate correctly
+                A recommended minimum supply of 7.2V should be sufficient for smaller motors
+            * The + and - connections for motor #1 are connected to each other
+            * Either + or - is connected to ground (GND, also known as 0V or earth)
+            * Either + or - is connected to the power supply (V+, directly to the battery or power pack)
+            * One of the motors may be damaged
+        Faults will self-clear, they do not need to be reset, however some faults require both motors to be moving at less than 100% to clear
+        The easiest way to check is to put both motors at a low power setting which is high enough for them to rotate easily, such as 30%
+        Note that the fault state may be true at power up, this is normal and should clear when both motors have been driven
+        For more details check the website at www.piborg.org/thunderborg and double check the wiring instructions
         """ 
         try:
             i2cRecv = self.RawRead(COMMAND_GET_DRIVE_A_FAULT, I2C_MAX_LEN)
@@ -744,22 +746,22 @@ For more details check the website at www.piborg.org/thunderborg and double chec
 
     def GetDriveFault2(self):
         """
-state = GetDriveFault2()
+        state = GetDriveFault2()
 
-Reads the motor drive fault state for motor #2, False for no problems, True for a fault has been detected
-Faults may indicate power problems, such as under-voltage (not enough power), and may be cleared by setting a lower drive power
-If a fault is persistent, it repeatably occurs when trying to control the board, this may indicate a wiring problem such as:
-    * The supply is not powerful enough for the motors
-        The board has a bare minimum requirement of 6V to operate correctly
-        A recommended minimum supply of 7.2V should be sufficient for smaller motors
-    * The + and - connections for motor #2 are connected to each other
-    * Either + or - is connected to ground (GND, also known as 0V or earth)
-    * Either + or - is connected to the power supply (V+, directly to the battery or power pack)
-    * One of the motors may be damaged
-Faults will self-clear, they do not need to be reset, however some faults require both motors to be moving at less than 100% to clear
-The easiest way to check is to put both motors at a low power setting which is high enough for them to rotate easily, such as 30%
-Note that the fault state may be true at power up, this is normal and should clear when both motors have been driven
-For more details check the website at www.piborg.org/thunderborg and double check the wiring instructions
+        Reads the motor drive fault state for motor #2, False for no problems, True for a fault has been detected
+        Faults may indicate power problems, such as under-voltage (not enough power), and may be cleared by setting a lower drive power
+        If a fault is persistent, it repeatably occurs when trying to control the board, this may indicate a wiring problem such as:
+            * The supply is not powerful enough for the motors
+                The board has a bare minimum requirement of 6V to operate correctly
+                A recommended minimum supply of 7.2V should be sufficient for smaller motors
+            * The + and - connections for motor #2 are connected to each other
+            * Either + or - is connected to ground (GND, also known as 0V or earth)
+            * Either + or - is connected to the power supply (V+, directly to the battery or power pack)
+            * One of the motors may be damaged
+        Faults will self-clear, they do not need to be reset, however some faults require both motors to be moving at less than 100% to clear
+        The easiest way to check is to put both motors at a low power setting which is high enough for them to rotate easily, such as 30%
+        Note that the fault state may be true at power up, this is normal and should clear when both motors have been driven
+        For more details check the website at www.piborg.org/thunderborg and double check the wiring instructions
         """ 
         try:
             i2cRecv = self.RawRead(COMMAND_GET_DRIVE_B_FAULT, I2C_MAX_LEN)
@@ -777,10 +779,10 @@ For more details check the website at www.piborg.org/thunderborg and double chec
 
     def GetBatteryReading(self):
         """
-voltage = GetBatteryReading()
+        voltage = GetBatteryReading()
 
-Reads the current battery level from the main input.
-Returns the value as a voltage based on the 3.3 V rail as a reference.
+        Reads the current battery level from the main input.
+        Returns the value as a voltage based on the 3.3 V rail as a reference.
         """ 
         try:
             i2cRecv = self.RawRead(COMMAND_GET_BATT_VOLT, I2C_MAX_LEN)
@@ -798,12 +800,12 @@ Returns the value as a voltage based on the 3.3 V rail as a reference.
 
     def SetBatteryMonitoringLimits(self, minimum, maximum):
         """
-SetBatteryMonitoringLimits(minimum, maximum)
+        SetBatteryMonitoringLimits(minimum, maximum)
 
-Sets the battery monitoring limits used for setting the LED colour.
-The values are between 0 and 36.3 V.
-The colours shown range from full red at minimum or below, yellow half way, and full green at maximum or higher.
-These values are stored in EEPROM and reloaded when the board is powered.
+        Sets the battery monitoring limits used for setting the LED colour.
+        The values are between 0 and 36.3 V.
+        The colours shown range from full red at minimum or below, yellow half way, and full green at maximum or higher.
+        These values are stored in EEPROM and reloaded when the board is powered.
         """
         levelMin = minimum / float(VOLTAGE_PIN_MAX)
         levelMax = maximum / float(VOLTAGE_PIN_MAX)
@@ -821,11 +823,11 @@ These values are stored in EEPROM and reloaded when the board is powered.
 
     def GetBatteryMonitoringLimits(self):
         """
-minimum, maximum = GetBatteryMonitoringLimits()
+        minimum, maximum = GetBatteryMonitoringLimits()
 
-Reads the current battery monitoring limits used for setting the LED colour.
-The values are between 0 and 36.3 V.
-The colours shown range from full red at minimum or below, yellow half way, and full green at maximum or higher.
+        Reads the current battery monitoring limits used for setting the LED colour.
+        The values are between 0 and 36.3 V.
+        The colours shown range from full red at minimum or below, yellow half way, and full green at maximum or higher.
         """ 
         try:
             i2cRecv = self.RawRead(COMMAND_GET_BATT_LIMITS, I2C_MAX_LEN)
@@ -846,15 +848,15 @@ The colours shown range from full red at minimum or below, yellow half way, and 
 
     def WriteExternalLedWord(self, b0, b1, b2, b3):
         """
-WriteExternalLedWord(b0, b1, b2, b3)
+        WriteExternalLedWord(b0, b1, b2, b3)
 
-Low level serial LED word writing.
-Bytes are written MSB first starting from b0
-e.g.
-WriteExtermnalLedWord(255, 64, 1, 0)
-will write out:
-11111111 01000000 00000001 00000000
-to the LEDs.
+        Low level serial LED word writing.
+        Bytes are written MSB first starting from b0
+        e.g.
+        WriteExtermnalLedWord(255, 64, 1, 0)
+        will write out:
+        11111111 01000000 00000001 00000000
+        to the LEDs.
         """
         b0 = max(0, min(PWM_MAX, int(b0)))
         b1 = max(0, min(PWM_MAX, int(b1)))
@@ -871,15 +873,15 @@ to the LEDs.
 
     def SetExternalLedColours(self, colours):
         """
-SetExternalLedColours([[r, g, b], ..., [r, g, b]])
+        SetExternalLedColours([[r, g, b], ..., [r, g, b]])
 
-Takes a set of RGB triples to set each LED to.
-Each call will set all of the LEDs
-e.g.
-SetExternalLedColours([[1.0, 1.0, 0.0]])
-will set a single LED to full yellow.
-SetExternalLedColours([[1.0, 0.0, 0.0], [0.5, 0.0, 0.0], [0.0, 0.0, 0.0]])
-will set LED 1 to full red, LED 2 to half red, and LED 3 to off.
+        Takes a set of RGB triples to set each LED to.
+        Each call will set all of the LEDs
+        e.g.
+        SetExternalLedColours([[1.0, 1.0, 0.0]])
+        will set a single LED to full yellow.
+        SetExternalLedColours([[1.0, 0.0, 0.0], [0.5, 0.0, 0.0], [0.0, 0.0, 0.0]])
+        will set LED 1 to full red, LED 2 to half red, and LED 3 to off.
         """
         # Send the start marker
         self.WriteExternalLedWord(0, 0, 0, 0)
@@ -891,9 +893,9 @@ will set LED 1 to full red, LED 2 to half red, and LED 3 to off.
 
     def Help(self):
         """
-Help()
+        Help()
 
-Displays the names and descriptions of the various functions and settings provided
+        Displays the names and descriptions of the various functions and settings provided
         """
         funcList = [ThunderBorg.__dict__.get(a) for a in dir(ThunderBorg) if isinstance(ThunderBorg.__dict__.get(a), types.FunctionType)]
         funcListSorted = sorted(funcList, key = lambda x: x.func_code.co_firstlineno)

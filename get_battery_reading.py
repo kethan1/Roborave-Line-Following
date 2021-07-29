@@ -4,7 +4,7 @@
 # GPIO 22 - Encoder B for Motor1
 # GPIO 24 - Encoder A for Motor2
 # GPIO 23 - Encoder B for Motor2
-import Libraries.ThunderBorg3 as ThunderBorg
+import Libraries.Thunderborg as ThunderBorg
 import sys
 import time
 

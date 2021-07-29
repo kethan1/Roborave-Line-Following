@@ -8,7 +8,7 @@ import inspect
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 
-import Libraries.ThunderBorg3 as ThunderBorg
+import Libraries.Thunderborg as ThunderBorg
 
 TB = ThunderBorg.ThunderBorg()   # Create a new ThunderBorg object
 # TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
