@@ -132,7 +132,7 @@ Warning, this new I²C address will still be used after resetting the power on t
     if oldAddress < 0x0:
         found = ScanForThunderBorg(busNumber)
         if len(found) < 1:
-            print('No ThunderBorg boards found, cannot set a new I²C address! Exception:\n{repr(e)}')
+            print('No ThunderBorg boards found, cannot set a new I²C address!')
             return
         else:
             oldAddress = found[0]
@@ -620,7 +620,7 @@ SetLeds(0.2, 0.0, 0.2) -> Both LEDs dull purple
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending colour for both LEDs! Exception:\n{e.__repr__()}')
+            self.Print(f'Failed sending colour for both LEDs! Exception:\n{repr(e)}')
 
 
     def SetLedShowBattery(self, state):
@@ -641,7 +641,7 @@ This sweeps from fully green for maximum voltage (35 V) to fully red for minimum
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending LED battery monitoring state! Exception:\n{e.__repr__()}')
+            self.Print(f'Failed sending LED battery monitoring state! Exception:\n{repr(e)}')
 
 
     def GetLedShowBattery(self):
@@ -657,7 +657,7 @@ This sweeps from fully green for maximum voltage (35 V) to fully red for minimum
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading LED battery monitoring state! Exception:\n{e.__repr__()}')
+            self.Print(f'Failed reading LED battery monitoring state! Exception:\n{repr(e)}')
             return
 
         if i2cRecv[1] == COMMAND_VALUE_OFF:
@@ -685,7 +685,7 @@ The failsafe is disabled at power on
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending communications failsafe state! Exception:\n{e.__repr__()}')
+            self.Print(f'Failed sending communications failsafe state! Exception:\n{repr(e)}')
 
 
     def GetCommsFailsafe(self):
