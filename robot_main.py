@@ -125,14 +125,10 @@ def set_speed():
             speed_right = maintain_speed_PID_right.update(speed_separate[1], current_speed_right)
 
         if speed_separate or targetSpeed != 0:
-            if speed_left > 0:
-                speed_left = speed_left if speed_left > 0.15 else 0.15
-            else:
-                speed_left = speed_left if speed_left < -0.15 else -0.15
-            if speed_right > 0:
-                speed_right = speed_right if speed_right > 0.15 else 0.15
-            else:
-                speed_right = speed_right if speed_right < -0.15 else -0.15
+            speed_left = speed_left if abs(speed_left) > 0.15 else \
+                math.copysign(0.15, speed_left)
+            speed_right = speed_right if abs(speed_right) > 0.15 else \
+                math.copysign(0.15, speed_right)
 
         # print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
 
