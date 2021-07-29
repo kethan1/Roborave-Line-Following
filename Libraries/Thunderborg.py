@@ -81,10 +81,10 @@ COMMAND_ANALOG_MAX          = 0x3FF # Maximum value for analog readings
 
 def ScanForThunderBorg(busNumber=1):
     """
-ScanForThunderBorg([busNumber])
+    ScanForThunderBorg([busNumber])
 
-Scans the I2C bus for a ThunderBorg boards and returns a list of all usable addresses
-The busNumber if supplied is which I2C bus to scan, 0 for Rev 1 boards, 1 for Rev 2 boards, if not supplied the default is 1
+    Scans the I2C bus for a ThunderBorg boards and returns a list of all usable addresses
+    The busNumber if supplied is which I2C bus to scan, 0 for Rev 1 boards, 1 for Rev 2 boards, if not supplied the default is 1
     """
     found = []
     print('Scanning I2C bus #%d' % (busNumber))
@@ -116,12 +116,12 @@ The busNumber if supplied is which I2C bus to scan, 0 for Rev 1 boards, 1 for Re
 
 def SetNewAddress(newAddress, oldAddress = -1, busNumber = 1):
     """
-SetNewAddress(newAddress, [oldAddress], [busNumber])
+    SetNewAddress(newAddress, [oldAddress], [busNumber])
 
-Scans the I2C bus for the first ThunderBorg and sets it to a new I2C address
-If oldAddress is supplied it will change the address of the board at that address rather than scanning the bus
-The busNumber if supplied is which I2C bus to scan, 0 for Rev 1 boards, 1 for Rev 2 boards, if not supplied the default is 1
-Warning, this new I2C address will still be used after resetting the power on the device
+    Scans the I2C bus for the first ThunderBorg and sets it to a new I2C address
+    If oldAddress is supplied it will change the address of the board at that address rather than scanning the bus
+    The busNumber if supplied is which I2C bus to scan, 0 for Rev 1 boards, 1 for Rev 2 boards, if not supplied the default is 1
+    Warning, this new I2C address will still be used after resetting the power on the device
     """
     if newAddress < 0x03:
         print('Error, I2C addresses below 3 (0x03) are reserved, use an address between 3 (0x03) and 119 (0x77)')
@@ -187,13 +187,13 @@ Warning, this new I2C address will still be used after resetting the power on th
 # Class used to control ThunderBorg
 class ThunderBorg:
     """
-This module is designed to communicate with the ThunderBorg
+    This module is designed to communicate with the ThunderBorg
 
-busNumber               I2C bus on which the ThunderBorg is attached (Rev 1 is bus 0, Rev 2 is bus 1)
-bus                     the smbus object used to talk to the I2C bus
-i2cAddress              The I2C address of the ThunderBorg chip to control
-foundChip               True if the ThunderBorg chip can be seen, False otherwise
-printFunction           Function reference to call when printing text, if None "print" is used
+    busNumber               I2C bus on which the ThunderBorg is attached (Rev 1 is bus 0, Rev 2 is bus 1)
+    bus                     the smbus object used to talk to the I2C bus
+    i2cAddress              The I2C address of the ThunderBorg chip to control
+    foundChip               True if the ThunderBorg chip can be seen, False otherwise
+    printFunction           Function reference to call when printing text, if None "print" is used
     """
 
     # Shared values used by this class
