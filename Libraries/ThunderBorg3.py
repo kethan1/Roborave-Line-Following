@@ -365,7 +365,7 @@ SetMotor2(1)     -> motor 2 moving forward at 100% power
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending motor 2 drive level! Exception:\n{e}')
+            self.Print(f'Failed sending motor 2 drive level! Exception:\n{repr(e)}')
 
 
     def GetMotor2(self):
@@ -426,7 +426,7 @@ SetMotor1(1)     -> motor 1 moving forward at 100% power
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending motor 1 drive level! Exception:\n{e}')
+            self.Print(f'Failed sending motor 1 drive level! Exception:\n{repr(e)}')
 
 
     def GetMotor1(self):
@@ -501,7 +501,7 @@ Sets all motors to stopped, useful when ending a program
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending motors off command! Exception:\n{e}')
+            self.Print(f'Failed sending motors off command! Exception:\n{repr(e)}')
 
 
     def SetLed1(self, r, g, b):
@@ -524,7 +524,7 @@ SetLed1(0.2, 0.0, 0.2) -> ThunderBorg LED dull purple
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending colour for the ThunderBorg LED! Exception:\n{e}')
+            self.Print(f'Failed sending colour for the ThunderBorg LED! Exception:\n{repr(e)}')
 
 
     def GetLed1(self):
@@ -543,7 +543,7 @@ e.g.
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading ThunderBorg LED colour! Exception:\n{e}')
+            self.Print(f'Failed reading ThunderBorg LED colour! Exception:\n{repr(e)}')
             return
 
         r = i2cRecv[1] / float(PWM_MAX)
@@ -572,7 +572,7 @@ SetLed2(0.2, 0.0, 0.2) -> ThunderBorg Lid LED dull purple
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending colour for the ThunderBorg Lid LED! Exception:\n{e}')
+            self.Print(f'Failed sending colour for the ThunderBorg Lid LED! Exception:\n{repr(e)}')
 
 
     def GetLed2(self):
@@ -591,7 +591,7 @@ e.g.
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading ThunderBorg Lid LED colour! Exception:\n{e}')
+            self.Print(f'Failed reading ThunderBorg Lid LED colour! Exception:\n{repr(e)}')
             return
 
         r = i2cRecv[1] / float(PWM_MAX)
