@@ -101,10 +101,15 @@ def imshow_debug(image_to_show, title):
         cv2.imshow(image_to_show, title)
 
 
+# A seperate function that runs the PID that adjusts the motor speed depending on the
+# encoders. This allows the robot to run smoothly on many surfaces. This function runs
+# in a separate thread. 
 def set_speed():
     global targetSpeed
     prevStepsLeft = prevStepsRight = prevTime = 0
 
+    # To get the speed from the encoders, we can track the numbers of steps between now
+    # and a previous time
     while not finish:
         cTime, stepsLeft, stepsRight = time.time(), encoder_left.getSteps(), encoder_right.getSteps()
 
@@ -124,6 +129,8 @@ def set_speed():
             speed_left = maintain_speed_PID_left.update(speed_separate[0], current_speed_left)
             speed_right = maintain_speed_PID_right.update(speed_separate[1], current_speed_right)
 
+        # If the motors drop too low, they won't move. This brings up the
+        # power level to 0.15 if it is lower than that.
         if speed_separate or targetSpeed != 0:
             speed_left = speed_left if abs(speed_left) > 0.15 else \
                 math.copysign(0.15, speed_left)
@@ -131,11 +138,6 @@ def set_speed():
                 math.copysign(0.15, speed_right)
 
         # print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
-
-        # If the motors drop too low, they won't move. This brings up the
-        # power level to 0.15 if it is lower than that.
-        # speed_left = speed_left if speed_left > 0.15 else 0.15
-        # speed_right = speed_right if speed_right > 0.15 else 0.15
 
         TB.SetMotor1(speed_left)
         TB.SetMotor2(speed_right)
