@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
+# Importing modules 
+
 import sys
 import time
 import json
 import math
 # import timeit
 import threading
-import os
 
 import cv2
 import numpy as np
@@ -21,9 +22,13 @@ from hall_effect_sensor import Hall_Effect_Sensor
 from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encoder
 
 
+
+
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
 # TB.i2cAddress = 0x15          # Uncomment and change the value if you have changed the board address
 TB.Init()                       # Set the board up (checks the board is connected)
+
+# Thunderborg Checks
 
 if not TB.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
@@ -39,6 +44,8 @@ if not TB.foundChip:
 
 TB.SetBatteryMonitoringLimits(10, 13)  # Set LED Battery Indicator
 
+# Reading Configuration Values
+
 with open("robot_config.json") as robot_config_file:
     robot_config = json.load(robot_config_file)
 
@@ -50,6 +57,9 @@ MAINTAIN_SPEED_I_VALUE = robot_config["MAINTAIN_SPEED_PID"]["I"]
 MAINTAIN_SPEED_D_VALUE = robot_config["MAINTAIN_SPEED_PID"]["D"]
 GRAYSCALE_THRESHOLD = robot_config["GRAYSCALE_THRESHOLD"]
 BASE_SPEED = robot_config["BASE_SPEED"]
+
+
+# Command line flags
 
 debug = False if "--prod" in sys.argv[1:] else robot_config["debug"]
 bl_wh = True if "--bl_wh" in sys.argv[1:] else False
@@ -64,16 +74,17 @@ if not debug and "--print-prod" in sys.argv[1:]:
     sys.stdout = None
 
 
-def magnet_callback():
-    global speed_separate, targetSpeed
-    speed_separate, targetSpeed = [], 0
-    end_program()
+
+# def magnet_callback():
+#     global speed_separate, targetSpeed
+#     speed_separate, targetSpeed = [], 0
+#     end_program()
 
 
 initialize_encoder()
 encoder_left = Encoder(*robot_config["Encoder_Left"])
 encoder_right = Encoder(*robot_config["Encoder_Right"])
-hall_effect_sensor = Hall_Effect_Sensor(16, magnet_callback)
+# hall_effect_sensor = Hall_Effect_Sensor(16, magnet_callback)
 
 
 GPIO.setmode(GPIO.BCM)
@@ -89,7 +100,7 @@ LEFT, RIGHT = 0, 1
 
 image, finish, targetSpeed, towerFound = None, False, 0, False
 speed_separate = []
-intersection_turns = [RIGHT, LEFT, LEFT]
+intersection_turns = [RIGHT, LEFT, LEFT] * 10
 intersection_turns_index = 0
 rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv")
 maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_left.csv")
@@ -119,6 +130,7 @@ def set_speed():
             ((stepsRight - prevStepsRight) / 3591.84) / (cTime - prevTime) * 3
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
+
         if not speed_separate:
             if targetSpeed != 0:
                 speed_left = maintain_speed_PID_left.update(BASE_SPEED + targetSpeed, current_speed_left)
@@ -136,8 +148,9 @@ def set_speed():
                 math.copysign(0.15, speed_left)
             speed_right = speed_right if abs(speed_right) > 0.15 else \
                 math.copysign(0.15, speed_right)
-
-        # print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
+        
+        # if speed_separate:
+        #     print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
 
         TB.SetMotor1(speed_left)
         TB.SetMotor2(speed_right)
@@ -149,6 +162,7 @@ def set_speed():
 
 set_speed_thread = threading.Thread(target=set_speed)
 
+# Ending program function -- Closes everything
 
 def end_program():
     global finish
@@ -166,7 +180,6 @@ def end_program():
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
         camera.resolution = (320, 240)
-        # time.sleep(1)  # Allow camera warmup
         for _ in range(40):
             camera.capture(stream, "bgr", use_video_port=True)
             image = stream.array
@@ -200,7 +213,7 @@ with picamera.PiCamera() as camera:
                 max_pixels_pos = np.argmax(pixels_sum)
                 max_pixels = pixels_sum[max_pixels_pos] / 255
 
-                if grayscale_image_resized.shape[1] * 0.4 <= max_pixels:
+                if grayscale_image_resized.shape[1] * 0.45 <= max_pixels:
                     print("Intersection spotted")
                     print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
 
@@ -211,23 +224,27 @@ with picamera.PiCamera() as camera:
                     # the start of the robot's camera is at the intersection,
                     # and then move a certain amount forward so that the
                     # center of mass of the robot is over the intersection
-                    time.sleep((abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.00057) + 0.15)
-
+                    time.sleep((0.002 * (grayscale_image_resized.shape[0] - max_pixels_pos)) + 0.17)
+                    
                     if not towerFound:
                         if intersection_turns[intersection_turns_index] == RIGHT:
-                            print(f"Intersection Turn: {intersection_turns}")
-                            speed_separate = [-0.5, 0.5]
+                            # print(f"Intersection Turn: {intersection_turns}")
+                            print("Turning Right for Intersection")
+                            speed_separate = [-1, 1]
                         elif intersection_turns[intersection_turns_index] == LEFT:
-                            print(f"Intersection Turn: {intersection_turns}")
-                            speed_separate = [0.5, -0.5]
+                            # print(f"Intersection Turn: {intersection_turns}")
+                            print("Turning Left for Intersection")
+                            speed_separate = [1.2, -1.2]  # Faster speed because motors are different
                     else:
                         if intersection_turns[intersection_turns_index] == LEFT:
-                            print(f"Intersection Turn: {intersection_turns}")
-                            speed_separate = [-0.5, 0.5]
+                            # print(f"Intersection Turn: {intersection_turns}")
+                            print("Turning Left for Intersection")
+                            speed_separate = [-1, 1]
                         elif intersection_turns[intersection_turns_index] == RIGHT:
-                            print(f"Intersection Turn: {intersection_turns}")
-                            speed_separate = [0.5, -0.5]
-                    time.sleep(0.95)
+                            # print(f"Intersection Turn: {intersection_turns}")
+                            print("Turning Right for Intersection")
+                            speed_separate = [1.2, -1.2]  # Faster speed because motors are different
+                    time.sleep(0.45 if intersection_turns[intersection_turns_index] == RIGHT else 0.52)
                     speed_separate = []
                     targetSpeed = 0
 
@@ -299,6 +316,7 @@ with picamera.PiCamera() as camera:
 
                 stream.seek(0)
                 stream.truncate()
+
 
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
