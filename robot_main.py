@@ -49,14 +49,15 @@ TB.SetBatteryMonitoringLimits(10, 13)  # Set LED Battery Indicator
 with open("robot_config.json") as robot_config_file:
     robot_config = json.load(robot_config_file)
 
-P_VALUE = robot_config["P"]
-I_VALUE = robot_config["I"]
-D_VALUE = robot_config["D"]
-MAINTAIN_SPEED_P_VALUE = robot_config["MAINTAIN_SPEED_PID"]["P"]
-MAINTAIN_SPEED_I_VALUE = robot_config["MAINTAIN_SPEED_PID"]["I"]
-MAINTAIN_SPEED_D_VALUE = robot_config["MAINTAIN_SPEED_PID"]["D"]
-GRAYSCALE_THRESHOLD = robot_config["GRAYSCALE_THRESHOLD"]
-BASE_SPEED = robot_config["BASE_SPEED"]
+P_VALUE: float = robot_config["P"]
+I_VALUE: float = robot_config["I"]
+D_VALUE: float = robot_config["D"]
+MAINTAIN_SPEED_P_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["P"]
+MAINTAIN_SPEED_I_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["I"]
+MAINTAIN_SPEED_D_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["D"]
+GRAYSCALE_THRESHOLD: int = robot_config["GRAYSCALE_THRESHOLD"]
+BASE_SPEED: float = robot_config["BASE_SPEED"]
+INTERSECTION_PORTION: float = robot_config['INTERSECTION_PORTION']
 
 
 # Command line flags
@@ -72,7 +73,6 @@ if "--D" in sys.argv[1:]:
 
 if not debug and "--print-prod" in sys.argv[1:]:
     sys.stdout = None
-
 
 
 # def magnet_callback():
@@ -213,7 +213,7 @@ with picamera.PiCamera() as camera:
                 max_pixels_pos = np.argmax(pixels_sum)
                 max_pixels = pixels_sum[max_pixels_pos] / 255
 
-                if grayscale_image_resized.shape[1] * 0.45 <= max_pixels:
+                if grayscale_image_resized.shape[1] * INTERSECTION_PORTION <= max_pixels:
                     print("Intersection spotted")
                     print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
 
