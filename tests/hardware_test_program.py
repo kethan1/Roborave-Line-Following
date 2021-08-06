@@ -9,6 +9,8 @@ import picamera.array
 import RPi.GPIO as GPIO
 import numpy as np
 
+GPIO.setmode(GPIO.BCM)
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 
 import Libraries.Thunderborg as ThunderBorg
@@ -199,8 +201,83 @@ def test_intersection():
 def test_encoder():
     encoder_left = Encoder(*robot_config["Encoder_Left"])
     encoder_right = Encoder(*robot_config["Encoder_Right"])
-    
 
+    input("Hold the robot in the air. It will be moving forward. Press enter when you are ready: ")
+    TB.SetMotor1(1)
+    TB.SetMotor2(1)
+
+    prevStepsLeft = prevStepsRight = 0
+    prevTime = time.time()
+    speedsLeft = []
+    speedsRight = []
+
+    for _ in range(100):
+        cTime = time.time()
+        stepsLeft = encoder_left.getSteps()
+        stepsRight = encoder_right.getSteps()
+        speedLeft = ((stepsLeft - prevStepsLeft) / (cTime - prevTime) * 3) / 3591.84
+        speedRight = ((stepsRight - prevStepsRight) / (cTime - prevTime) * 3) / 3591.84 
+        prevTime = cTime
+        prevStepsLeft = stepsLeft
+        prevStepsRight = stepsRight
+        # print(f"Left, Steps: {encoder_left.getSteps()}, Direction: {encoder_left.getDirection()}, Speed in rev/sec: {speedLeft}")
+        # print(f"Right, Steps: {encoder_right.getSteps()}, Direction: {encoder_right.getDirection()}, Speed in rev/sec: {speedRight}")
+        time.sleep(0.01) 
+
+        speedsLeft.append(speedLeft)
+        speedsRight.append(speedRight)
+
+    TB.SetMotor1(0)
+    TB.SetMotor2(0)    
+
+    if not 1 < sum(speedsLeft[10:]) / len(speedsLeft[10:]) < 1.6:
+        raise HardwareFailure('Left encoder is broken for going forward.')
+    else:
+        print('Test Success! The left encoder works for going forward!')
+
+    if not 1 < sum(speedsRight[10:]) / len(speedsRight[10:]) < 1.6:
+        raise HardwareFailure('Right encoder is broken for going forward.')
+    else:
+        print('Test Success! The right encoder works for going forward!')
+
+
+    input("Hold the robot in the air. It will be moving backward. Press enter when you are ready: ")
+    TB.SetMotor1(-1)
+    TB.SetMotor2(-1)
+
+    prevStepsLeft = prevStepsRight = 0
+    prevTime = time.time()
+    speedsLeft = []
+    speedsRight = []
+
+    for _ in range(100):
+        cTime = time.time()
+        stepsLeft = encoder_left.getSteps()
+        stepsRight = encoder_right.getSteps()
+        speedLeft = ((stepsLeft - prevStepsLeft) / (cTime - prevTime) * 3) / 3591.84
+        speedRight = ((stepsRight - prevStepsRight) / (cTime - prevTime) * 3) / 3591.84 
+        prevTime = cTime
+        prevStepsLeft = stepsLeft
+        prevStepsRight = stepsRight
+        # print(f"Left, Steps: {encoder_left.getSteps()}, Direction: {encoder_left.getDirection()}, Speed in rev/sec: {speedLeft}")
+        # print(f"Right, Steps: {encoder_right.getSteps()}, Direction: {encoder_right.getDirection()}, Speed in rev/sec: {speedRight}")
+        time.sleep(0.01) 
+
+        speedsLeft.append(speedLeft)
+        speedsRight.append(speedRight)
+
+    TB.SetMotor1(0)
+    TB.SetMotor2(0)    
+
+    if not -1.6 < sum(speedsLeft[10:]) / len(speedsLeft[10:]) < -1:
+        raise HardwareFailure('Left encoder is broken for going backward.')
+    else:
+        print('Test Success! The left encoder works for going backward!')
+
+    if not -1.6 < sum(speedsRight[10:]) / len(speedsRight[10:]) < -1:
+        raise HardwareFailure('Right encoder is broken for going backward.')
+    else:
+        print('Test Success! The right encoder works for going backward!')
 
 if not sys.argv[1:]:
     test_motors()

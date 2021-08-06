@@ -44,7 +44,6 @@ if not TB.foundChip:
     sys.exit()
 
 TB.SetBatteryMonitoringLimits(11, 13)
-TB.Help()
 
 try:
     time.sleep(1)
