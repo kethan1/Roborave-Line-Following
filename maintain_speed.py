@@ -19,7 +19,7 @@ pid_left = PID(P=2.0, I=0.025, D=1.8, file="maintain_speed_left_seperate.csv")
 pid_right = PID(P=2.0, I=0.025, D=1.8, file="maintain_speed_right_seperate.csv")
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-# TB.i2cAddress = 0x15           # Uncomment and change the value if you have changed the board address
+TB.i2cAddress = 10              # Uncomment and change the value if you have changed the board address
 TB.Init()                       # Set the board up (checks the board is connected)
 if not TB.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
