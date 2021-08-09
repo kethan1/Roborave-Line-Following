@@ -8,6 +8,7 @@ import json
 import math
 # import timeit
 import threading
+from typing import Dict
 
 import cv2
 import numpy as np
@@ -33,13 +34,13 @@ TB.Init()                       # Set the board up (checks the board is connecte
 if not TB.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
     if len(boards) == 0:
-        print('No ThunderBorg found, check you are attached :)')
+        print("No ThunderBorg found, check you are attached :)")
     else:
-        print(f'No ThunderBorg at address {TB.i2cAddress}, but we did find boards:')
+        print(f"No ThunderBorg at address {TB.i2cAddress}, but we did find boards:")
         for board in boards:
-            print('    %02X (%d)' % (board, board))
-        print('If you need to change the I²C address change the setup line so it is correct, e.g.')
-        print('TB.i2cAddress = 0x%02X' % (boards[0]))
+            print("    %02X (%d)" % (board, board))
+        print("If you need to change the I²C address change the setup line so it is correct, e.g.")
+        print("TB.i2cAddress = 0x%02X" % (boards[0]))
     sys.exit()
 
 TB.SetBatteryMonitoringLimits(10, 13)  # Set LED Battery Indicator
@@ -57,7 +58,8 @@ MAINTAIN_SPEED_I_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["I"]
 MAINTAIN_SPEED_D_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["D"]
 GRAYSCALE_THRESHOLD: int = robot_config["GRAYSCALE_THRESHOLD"]
 BASE_SPEED: float = robot_config["BASE_SPEED"]
-INTERSECTION_PORTION: float = robot_config['INTERSECTION_PORTION']
+INTERSECTION_PORTION: float = robot_config["INTERSECTION_PORTION"]
+LED_CONFIG: Dict[str, int] = robot_config["LED_CONFIG"]
 
 
 # Command line flags
@@ -75,26 +77,26 @@ if not debug and "--print-prod" in sys.argv[1:]:
     sys.stdout = None
 
 
-# def magnet_callback():
-#     global speed_separate, targetSpeed
-#     speed_separate, targetSpeed = [], 0
-#     end_program()
+def magnet_callback():
+    print("Magnet detected")
+    end_program()
 
 
 initialize_encoder()
 encoder_left = Encoder(*robot_config["Encoder_Left"])
 encoder_right = Encoder(*robot_config["Encoder_Right"])
-# hall_effect_sensor = Hall_Effect_Sensor(16, magnet_callback)
+hall_effect_sensor = Hall_Effect_Sensor(16, magnet_callback)
 
 
 GPIO.setmode(GPIO.BCM)
-pinlistOut = []
-pinlistIn = [25, 22, 24, 23]
+pinlistOut = list(LED_CONFIG.values()) + []
+pinlistIn = []
 # Motor1 - Right
 # Motor2 - Left
 GPIO.setup(pinlistOut, GPIO.OUT)
 GPIO.setup(pinlistIn, GPIO.IN)
-GPIO.output(pinlistOut, 0)
+GPIO.output(pinlistOut, GPIO.LOW)
+GPIO.output(LED_CONFIG["blue"], GPIO.HIGH)
 LEFT, RIGHT = 0, 1
 
 
@@ -141,7 +143,7 @@ def set_speed():
             speed_left = maintain_speed_PID_left.update(speed_separate[0], current_speed_left)
             speed_right = maintain_speed_PID_right.update(speed_separate[1], current_speed_right)
 
-        # If the motors drop too low, they won't move. This brings up the
+        # If the motors drop too low, they won"t move. This brings up the
         # power level to 0.15 if it is lower than that.
         if speed_separate or targetSpeed != 0:
             speed_left = speed_left if abs(speed_left) > 0.15 else \
@@ -170,10 +172,11 @@ def end_program():
     print("Ending Program")
     finish = True
     cv2.destroyAllWindows()
-    TB.MotorsOff()
+    GPIO.output(list(LED_CONFIG.values()), GPIO.LOW)
     GPIO.cleanup()
     rev_per_second.close()
     set_speed_thread.join()
+    TB.MotorsOff()
     sys.exit()
 
 
@@ -189,6 +192,8 @@ with picamera.PiCamera() as camera:
             stream.seek(0)
             stream.truncate()
 
+        GPIO.output(LED_CONFIG["blue"], GPIO.LOW)
+        GPIO.output(LED_CONFIG["green"], GPIO.HIGH)
         set_speed_thread.start()
 
         while True:
@@ -214,6 +219,8 @@ with picamera.PiCamera() as camera:
                 max_pixels = pixels_sum[max_pixels_pos] / 255
 
                 if grayscale_image_resized.shape[1] * INTERSECTION_PORTION <= max_pixels:
+                    GPIO.output(LED_CONFIG["green"], GPIO.LOW)
+                    GPIO.output(LED_CONFIG["yellow"], GPIO.HIGH)
                     print("Intersection spotted")
                     print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
 
@@ -221,7 +228,7 @@ with picamera.PiCamera() as camera:
 
                     speed_separate = [1.2, 1.2]
                     # need a mx + b equation because we need to move a so that
-                    # the start of the robot's camera is at the intersection,
+                    # the start of the robot"s camera is at the intersection,
                     # and then move a certain amount forward so that the
                     # center of mass of the robot is over the intersection
                     time.sleep((0.002 * (grayscale_image_resized.shape[0] - max_pixels_pos)) + 0.17)
@@ -256,6 +263,9 @@ with picamera.PiCamera() as camera:
                     stream.truncate()
 
                     continue
+                else:
+                    GPIO.output(LED_CONFIG["green"], GPIO.HIGH)
+                    GPIO.output(LED_CONFIG["yellow"], GPIO.LOW)
 
                 height, width = grayscale_image.shape
 
@@ -269,6 +279,8 @@ with picamera.PiCamera() as camera:
                         break
 
                 if not line_found or (np.sum(grayscale_image) < 50 * 255):  # Criteria for line lost
+                    GPIO.output(LED_CONFIG["red"], GPIO.HIGH)
+                    GPIO.output(LED_CONFIG["green"], GPIO.LOW)
                     print("Line Lost")
                     targetSpeed = 0
                     # Moving backwards until line found again
@@ -279,20 +291,13 @@ with picamera.PiCamera() as camera:
                     stream.seek(0)
                     stream.truncate()
                     continue
+                else:
+                    GPIO.output(LED_CONFIG["green"], GPIO.HIGH)
+                    GPIO.output(LED_CONFIG["red"], GPIO.LOW)
 
                 targetSpeed_tmp = rev_per_second.update(width/2, center_of_mass_x)
                 targetSpeed = targetSpeed_tmp if abs(targetSpeed_tmp) <= 1.4 \
                     else math.copysign(1.4, targetSpeed_tmp)
-                # if abs(targetSpeed_tmp) > 1.4:
-                #     targetSpeed = math.copysign(1.4, targetSpeed_tmp)
-                # else:
-                #     targetSpeed = targetSpeed_tmp
-                # if targetSpeed_tmp > 0:
-                #     targetSpeed = targetSpeed_tmp if targetSpeed_tmp < 1.5 else 1.5
-                # elif targetSpeed_tmp < 0:
-                #     targetSpeed = targetSpeed_tmp if targetSpeed_tmp > -1.5 else -1.5
-                # else:
-                #     targetSpeed = 0
 
                 if not bl_wh:
                     imshow_debug(

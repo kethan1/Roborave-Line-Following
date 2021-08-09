@@ -9,6 +9,13 @@
         "I": 0.025,
         "D": 1.8
     },
+    "LED_CONFIG": {
+        "blue": 26,
+        "green": 13,
+        "yellow": 12,
+        "red": 6,
+        "white": 5
+    },
     "GRAYSCALE_THRESHOLD": 80,
     "BASE_SPEED": 0.8,
     "INTERSECTION_PORTION": 0.45,
