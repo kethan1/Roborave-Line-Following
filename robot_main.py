@@ -183,6 +183,7 @@ def end_program():
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
         camera.resolution = (320, 240)
+        # Capture 40 frames to get the camera to warmup
         for _ in range(40):
             camera.capture(stream, "bgr", use_video_port=True)
             image = stream.array
