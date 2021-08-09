@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Importing modules 
+# Importing modules
 
 import sys
 import time
@@ -114,9 +114,9 @@ def imshow_debug(image_to_show, title):
         cv2.imshow(image_to_show, title)
 
 
-# A seperate function that runs the PID that adjusts the motor speed depending on the
-# encoders. This allows the robot to run smoothly on many surfaces. This function runs
-# in a separate thread. 
+# A seperate function that runs the PID that adjusts the motor speed depending
+# on the encoders. This allows the robot to run smoothly on many surfaces. This
+# function runs in a separate thread.
 def set_speed():
     global targetSpeed
     prevStepsLeft = prevStepsRight = prevTime = 0
@@ -150,7 +150,7 @@ def set_speed():
                 math.copysign(0.15, speed_left)
             speed_right = speed_right if abs(speed_right) > 0.15 else \
                 math.copysign(0.15, speed_right)
-        
+
         # if speed_separate:
         #     print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
 
@@ -164,8 +164,8 @@ def set_speed():
 
 set_speed_thread = threading.Thread(target=set_speed)
 
-# Ending program function -- Closes everything
 
+# Ending program function -- Closes everything
 def end_program():
     global finish
 
@@ -322,7 +322,6 @@ with picamera.PiCamera() as camera:
 
                 stream.seek(0)
                 stream.truncate()
-
 
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
