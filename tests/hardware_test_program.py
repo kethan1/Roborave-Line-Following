@@ -47,6 +47,7 @@ TB1.SetBatteryMonitoringLimits(10, 13)  # Set LED Battery Indicator
 print(f"Battery Level Not Underload: {TB1.GetBatteryReading()}")
 
 class HardwareFailure(Exception):
+    __module__ = Exception.__module__
     """
     Will be raised when ever the hardware fails. 
     """
@@ -84,7 +85,7 @@ def test_motors():
 
     
 
-    if input("Did the motors move forward for 1 second?").lower() == "no":
+    if input("Did the motors move forward for 1 second? ").lower() == "no":
         raise HardwareFailure("Motors Did Not Move Forward!")
     else:
         print("Motors moved forward! Test success!")
@@ -95,7 +96,7 @@ def test_motors():
     TB1.SetMotor1(0)
     TB1.SetMotor2(0)
 
-    if input("Did the motors move backward for 1 second?").lower() == "no":
+    if input("Did the motors move backward for 1 second? ").lower() == "no":
         raise HardwareFailure("Motors Did Not Move Backward!")
     else:
         print("Motors moved backward! Test success!")
@@ -103,7 +104,7 @@ def test_motors():
     TB2.SetMotor1(1)
     time.sleep(1)
     TB2.SetMotor1(0)
-    if input("Did the vibration motor vibrate for 1 second?").lower() == "no":
+    if input("Did the vibration motor vibrate for 1 second? ").lower() == "no":
         raise HardwareFailure("The vibration motors did not move backward!")
     else:
         print("The vibration motors vibrated! Test success!")
