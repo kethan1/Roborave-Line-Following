@@ -232,7 +232,7 @@ with picamera.PiCamera() as camera:
                     # the start of the robot"s camera is at the intersection,
                     # and then move a certain amount forward so that the
                     # center of mass of the robot is over the intersection
-                    time.sleep((0.002 * (grayscale_image_resized.shape[0] - max_pixels_pos)) + 0.17)
+                    time.sleep((0.0017 * (grayscale_image_resized.shape[0] - max_pixels_pos)) + 0.12)
                     
                     if not towerFound:
                         if intersection_turns[intersection_turns_index] == RIGHT:
