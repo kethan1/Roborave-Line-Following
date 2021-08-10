@@ -12,8 +12,13 @@ import Libraries.Thunderborg as ThunderBorg
 
 TB = ThunderBorg.ThunderBorg()   # Create a new ThunderBorg object
 TB.i2cAddress = 10               # Uncomment and change the value if you have changed the board address
-TB.Init()                        # Set the board up (checks the board is connected)
-if not TB.foundChip:
+TB.Init()
+
+TB2 = ThunderBorg.ThunderBorg()
+TB2.i2cAddress = 0x15
+TB2.Init()
+                        # Set the board up (checks the board is connected)
+if not TB.foundChip or not TB2.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
     if len(boards) == 0:
         print('No ThunderBorg found, check you are attached :)')
@@ -26,3 +31,4 @@ if not TB.foundChip:
     sys.exit()
 
 TB.MotorsOff()
+TB2.MotorsOff()
