@@ -112,7 +112,7 @@ def test_motors():
 
 def test_magnet_sensor():
     detected = 0
-    def magnet_callback_found(pin: int):
+    def magnet_callback_found(*_, **__):
         nonlocal detected
         detected = 1 - hall_effect_sensor.read()
 
