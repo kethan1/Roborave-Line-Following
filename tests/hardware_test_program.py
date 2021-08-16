@@ -66,9 +66,11 @@ GRAYSCALE_THRESHOLD: int = robot_config["GRAYSCALE_THRESHOLD"]
 BASE_SPEED: float = robot_config["BASE_SPEED"]
 INTERSECTION_PORTION: float = robot_config["INTERSECTION_PORTION"]
 LED_CONFIG: Dict[str, int] = robot_config["LED_CONFIG"]
+LED_COLOR_COMBOS: Dict[str, Dict[str, int]] = robot_config["LED_COLOR_COMBOS"]
 
 pinlistOut = list(LED_CONFIG.values())
 GPIO.setup(pinlistOut, GPIO.OUT)
+GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
 
 encoder_left = Encoder(*robot_config["Encoder_Left"])
 encoder_right = Encoder(*robot_config["Encoder_Right"])
@@ -302,13 +304,14 @@ def test_encoder() -> None:
 
 
 def test_leds() -> None:
-    for color, pin in LED_CONFIG.items():
-        GPIO.output(pin, GPIO.HIGH)
-        if input(f"Did the {color} led turn on? ").lower() == "no":
-            raise HardwareFailure(f"The {color} led on pin {pin} has not turned on!")
+    for color, combos in LED_COLOR_COMBOS.items():
+        for pin_color, pin_brightness in combos.items():
+            GPIO.output(LED_CONFIG[pin_color], int(not pin_brightness))
+        if input(f"Is the RGB led showing the color {color}? ").lower() == "no":
+            raise HardwareFailure(f"The RGB led did not show the color {color}!")
         else:
-            print(f"The {color} led on pin {pin} has sucessfully turned on!")
-        GPIO.output(pin, GPIO.LOW)
+            print(f"The RGB led is showing the color {color}!")
+        GPIO.output(list(LED_CONFIG.values()), GPIO.LOW)
 
 
 if not sys.argv[1:]:
@@ -331,3 +334,6 @@ else:
         test_encoder()
     if "--leds" in sys.argv[1:]:
         test_leds()
+
+GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
+GPIO.cleanup()

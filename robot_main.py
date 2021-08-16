@@ -49,6 +49,12 @@ if not TB.foundChip:
 
 TB.SetBatteryMonitoringLimits(10, 13)  # Set LED Battery Indicator
 
+
+def show_color(led_pins: dict, color_dict: dict, on: bool = True):
+    for color, brightness in color_dict.items():
+        GPIO.output(led_pins[color], int(not brightness) if on else brightness)
+
+
 # Reading Configuration Values
 
 with open("robot_config.json") as robot_config_file:
@@ -64,6 +70,7 @@ GRAYSCALE_THRESHOLD: int = robot_config["GRAYSCALE_THRESHOLD"]
 BASE_SPEED: float = robot_config["BASE_SPEED"]
 INTERSECTION_PORTION: float = robot_config["INTERSECTION_PORTION"]
 LED_CONFIG: Dict[str, int] = robot_config["LED_CONFIG"]
+LED_COLOR_COMBOS: Dict[str, Dict[str, int]] = robot_config["LED_COLOR_COMBOS"]
 
 
 # Command line flags
@@ -101,8 +108,8 @@ pinlistIn = []
 # Motor2 - Left
 GPIO.setup(pinlistOut, GPIO.OUT)
 GPIO.setup(pinlistIn, GPIO.IN)
-GPIO.output(pinlistOut, GPIO.LOW)
-GPIO.output(LED_CONFIG["blue"], GPIO.HIGH)
+GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
+show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
 LEFT, RIGHT = 0, 1
 
 
@@ -226,8 +233,7 @@ with picamera.PiCamera() as camera:
                 max_pixels = pixels_sum[max_pixels_pos] / 255
 
                 if grayscale_image_resized.shape[1] * INTERSECTION_PORTION <= max_pixels:
-                    GPIO.output(LED_CONFIG["green"], GPIO.LOW)
-                    GPIO.output(LED_CONFIG["yellow"], GPIO.HIGH)
+                    show_color(LED_CONFIG, LED_COLOR_COMBOS["yellow"])
                     print("Intersection spotted")
                     print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
 
@@ -271,8 +277,7 @@ with picamera.PiCamera() as camera:
 
                     continue
                 else:
-                    GPIO.output(LED_CONFIG["green"], GPIO.HIGH)
-                    GPIO.output(LED_CONFIG["yellow"], GPIO.LOW)
+                    show_color(LED_CONFIG, LED_COLOR_COMBOS["green"])
 
                 height, width = grayscale_image.shape
 
@@ -286,8 +291,7 @@ with picamera.PiCamera() as camera:
                         break
 
                 if not line_found or (np.sum(grayscale_image) < 50 * 255):  # Criteria for line lost
-                    GPIO.output(LED_CONFIG["red"], GPIO.HIGH)
-                    GPIO.output(LED_CONFIG["green"], GPIO.LOW)
+                    show_color(LED_CONFIG, LED_COLOR_COMBOS["red"])
                     print("Line Lost")
                     targetSpeed = 0
                     # Moving backwards until line found again
@@ -299,8 +303,7 @@ with picamera.PiCamera() as camera:
                     stream.truncate()
                     continue
                 else:
-                    GPIO.output(LED_CONFIG["green"], GPIO.HIGH)
-                    GPIO.output(LED_CONFIG["red"], GPIO.LOW)
+                    show_color(LED_CONFIG, LED_COLOR_COMBOS["green"])
 
                 targetSpeed_tmp = rev_per_second.update(width/2, center_of_mass_x)
                 targetSpeed = targetSpeed_tmp if abs(targetSpeed_tmp) <= 1.4 \
