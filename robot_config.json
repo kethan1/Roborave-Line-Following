@@ -1,9 +1,9 @@
 {
     "Encoder_Left": [22, 25],
     "Encoder_Right": [23, 24],
-    "P": 0.025,
+    "P": 0.02,
     "I": 0,
-    "D": 0.024,
+    "D": 0.02,
     "MAINTAIN_SPEED_PID": {
         "P": 2.0,
         "I": 0.025,
@@ -40,6 +40,12 @@
             "green": 100,
             "blue": 0
         }
+    },
+    "CROPPING": {
+        "do": false,
+        "left": 0,
+        "right": 0,
+        "top": 0
     },
     "GRAYSCALE_THRESHOLD": 80,
     "BASE_SPEED": 0.8,

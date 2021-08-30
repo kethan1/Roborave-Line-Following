@@ -3,6 +3,7 @@ import sys
 import os
 import json
 import time
+import atexit
 import cv2
 import picamera
 import picamera.array
@@ -165,15 +166,15 @@ def test_camera():
                 )
 
                 cv2.imshow(f"Image: {image_index  + 1}", image)
-                cv2.imshow(f"Grayscale Image: {image_index + 1}", grayscale_image)
+                cv2.imshow(f"BW Image: {image_index + 1}", grayscale_image)
 
                 stream.seek(0)
                 stream.truncate()
 
             cv2.waitKey(0)
             cv2.destroyAllWindows()
-            if input("Do the images and the grayscale images look good? ").lower() == "no":
-                raise HardwareFailure("Camera images or grayscale thresholding is not working")
+            if input("Do the images and the black and white images look good? ").lower() == "no":
+                raise HardwareFailure("Camera images or black and white thresholding is not working")
             else:
                 print("Camera works! Test succeded!")
 
@@ -312,6 +313,11 @@ def test_leds() -> None:
         else:
             print(f"The RGB led is showing the color {color}!")
         GPIO.output(list(LED_CONFIG.values()), GPIO.LOW)
+    GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
+    if input(f"Is the RGB led off? ").lower() == "no":
+        raise HardwareFailure(f"The RGB led did not turn off.")
+    else:
+        print(f"The RGB led is off!")
 
 
 if not sys.argv[1:]:
@@ -334,6 +340,15 @@ else:
         test_encoder()
     if "--leds" in sys.argv[1:]:
         test_leds()
+    if "--help" in sys.argv[1:]:
+        print(
+            """
+            '--motors': tests the motors
+            """
+        )
 
-GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
-GPIO.cleanup()
+def cleanup_func():
+    GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
+    GPIO.cleanup()
+
+atexit.register(cleanup_func)

@@ -44,9 +44,14 @@ with picamera.PiCamera() as camera:
 
                 height, width = black_and_white_image.shape
 
-                if np.sum(black_and_white_image) < 50*255:
-                    print("Line Lost")
-                    sys.exit()
+                # if np.sum(black_and_white_image) < 50 * 255:
+                #     print("Line Lost")
+                #     sys.exit()
+
+                if np.sum(black_and_white_image) < 50 * 255:
+                    center_of_mass_y = 10
+                    center_of_mass_x = 120
+
 
                 for current_y in range(height, 0, -20):
                     cropped_image = black_and_white_image[current_y: current_y + 20, 0:-1]
@@ -55,9 +60,14 @@ with picamera.PiCamera() as camera:
                             cropped_image)
                         break
 
+                # if cropped_image is None:
+                #     print("Line Lost")
+                #     sys.exit()
+
                 if cropped_image is None:
-                    print("Line Lost")
-                    sys.exit()
+                    center_of_mass_y = 10
+                    center_of_mass_x = 120
+
 
                 debugging = cv2.circle(
                     image,

@@ -9,7 +9,7 @@ import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 
 encoder.init()
-encoder1 = encoder.Encoder(22, 25)
+encoder1 = encoder.Encoder(23, 24)
 prevSteps = 0
 prevTime = 0
 try:

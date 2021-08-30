@@ -8,7 +8,7 @@ import json
 import math
 # import timeit
 import threading
-from typing import Dict
+from typing import Dict, Union
 
 import cv2
 import numpy as np
@@ -71,6 +71,7 @@ BASE_SPEED: float = robot_config["BASE_SPEED"]
 INTERSECTION_PORTION: float = robot_config["INTERSECTION_PORTION"]
 LED_CONFIG: Dict[str, int] = robot_config["LED_CONFIG"]
 LED_COLOR_COMBOS: Dict[str, Dict[str, int]] = robot_config["LED_COLOR_COMBOS"]
+CROPPING: Dict[str, Union[bool, int]] = robot_config["CROPPING"]
 
 
 # Command line flags
@@ -148,8 +149,8 @@ def set_speed():
 
         if not speed_separate:
             if targetSpeed != 0:
-                speed_left = maintain_speed_PID_left.update(BASE_SPEED + targetSpeed, current_speed_left)
-                speed_right = maintain_speed_PID_right.update(BASE_SPEED - targetSpeed, current_speed_right)
+                speed_left = maintain_speed_PID_left.update(BASE_SPEED - targetSpeed, current_speed_left)
+                speed_right = maintain_speed_PID_right.update(BASE_SPEED + targetSpeed, current_speed_right)
             else:
                 speed_left = speed_right = 0
         elif speed_separate:
@@ -221,6 +222,22 @@ with picamera.PiCamera() as camera:
                     GRAYSCALE_THRESHOLD, 255, cv2.THRESH_BINARY_INV
                 )
 
+                height, width = grayscale_image.shape
+
+                if CROPPING["do"]:
+                    cv2.rectangle(
+                        grayscale_image, (0, 0), 
+                        (CROPPING["left"] * width, height)
+                    )
+                    cv2.rectangle(
+                        grayscale_image,
+                        (width - (CROPPING["right"] * width), 0),
+                        (height, width)
+                    )
+                    cv2.rectangle(
+                        grayscale_image, (0, 0), (width, CROPPING["top"] * height)
+                    )
+
                 grayscale_image_resized = cv2.resize(
                     grayscale_image, dsize=(
                         int(image.shape[1] * 0.4), int(image.shape[0] * 0.4)
@@ -250,20 +267,20 @@ with picamera.PiCamera() as camera:
                         if intersection_turns[intersection_turns_index] == RIGHT:
                             # print(f"Intersection Turn: {intersection_turns}")
                             print("Turning Right for Intersection")
-                            speed_separate = [-1.2, 1.2]
+                            speed_separate = [1.2, -1.2]
                         elif intersection_turns[intersection_turns_index] == LEFT:
                             # print(f"Intersection Turn: {intersection_turns}")
                             print("Turning Left for Intersection")
-                            speed_separate = [1.2, -1.2]  # Faster speed because motors are different
+                            speed_separate = [-1.2, 1.2]  # Faster speed because motors are different
                     else:
                         if intersection_turns[intersection_turns_index] == LEFT:
                             # print(f"Intersection Turn: {intersection_turns}")
                             print("Turning Left for Intersection")
-                            speed_separate = [-1.2, 1.2]
+                            speed_separate = [1.2, -1.2]
                         elif intersection_turns[intersection_turns_index] == RIGHT:
                             # print(f"Intersection Turn: {intersection_turns}")
                             print("Turning Right for Intersection")
-                            speed_separate = [1.2, -1.2]  # Faster speed because motors are different
+                            speed_separate = [-1.2, 1.2]  # Faster speed because motors are different
                     time.sleep(0.52)
                     speed_separate = []
                     targetSpeed = 0
@@ -275,7 +292,8 @@ with picamera.PiCamera() as camera:
                     stream.seek(0)
                     stream.truncate()
 
-                    continue
+                    # continue
+                    end_program()
                 else:
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["green"])
 

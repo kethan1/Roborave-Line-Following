@@ -42,7 +42,8 @@ Encoder::Encoder(int aGpioA, int aGpioB) {
     gpioB = aGpioB;
     direction = 0;
 
-    levA, levB = 0, 0;
+    levA = 0;
+    levB = 0;
 
     steps = 0;
     lastGpio = -1;
