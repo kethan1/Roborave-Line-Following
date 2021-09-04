@@ -44,6 +44,8 @@ with picamera.PiCamera() as camera:
 
                 height, width = black_and_white_image.shape
 
+                cv2.line(image, (int(image.shape[1] / 2), 0), (int(image.shape[1] / 2), image.shape[0]), (255, 0, 0), 3)
+
                 # if np.sum(black_and_white_image) < 50 * 255:
                 #     print("Line Lost")
                 #     sys.exit()

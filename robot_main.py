@@ -26,12 +26,12 @@ from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encode
 
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-TB.i2cAddress = 10              # Uncomment and change the value if you have changed the board address
+TB.i2cAddress = 0x15            # Uncomment and change the value if you have changed the board address
 TB.Init()                       # Set the board up (checks the board is connected)
 
-TB2 = ThunderBorg.ThunderBorg()
-TB2.i2cAddress = 0x15
-TB2.Init()
+# TB2 = ThunderBorg.ThunderBorg()
+# TB2.i2cAddress = 0x15
+# TB2.Init()
 
 # Thunderborg Checks
 
@@ -89,11 +89,11 @@ if not debug and "--print-prod" in sys.argv[1:]:
     sys.stdout = None
 
 
-def magnet_callback():
+def magnet_callback(pin):
     print("Magnet detected")
-    TB2.SetMotor1(1)
-    time.sleep(10)
-    TB2.SetMotor1(0)
+    # TB2.SetMotor1(1)
+    # time.sleep(10)
+    # TB2.SetMotor1(0)
 
 
 initialize_encoder()
@@ -281,7 +281,7 @@ with picamera.PiCamera() as camera:
                             # print(f"Intersection Turn: {intersection_turns}")
                             print("Turning Right for Intersection")
                             speed_separate = [-1.2, 1.2]  # Faster speed because motors are different
-                    time.sleep(0.52)
+                    time.sleep(0.475)
                     speed_separate = []
                     targetSpeed = 0
 
@@ -291,9 +291,6 @@ with picamera.PiCamera() as camera:
 
                     stream.seek(0)
                     stream.truncate()
-
-                    # continue
-                    end_program()
                 else:
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["green"])
 
@@ -359,3 +356,4 @@ with picamera.PiCamera() as camera:
 
 if not finish:
     end_program()
+

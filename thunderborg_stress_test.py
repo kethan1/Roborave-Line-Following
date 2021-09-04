@@ -27,9 +27,8 @@ except IndexError:
 print(f"Running at left motor at {motor_left} speed, and Running the right motor at {motor_right}")
 
 TB = ThunderBorg.ThunderBorg()
-TB.i2cAddress = 0x15
+TB.i2cAddress = 10
 TB.Init()
-TB.SetCommsFailsafe(False)
 
 # Thunderborg Checks
 if not TB.foundChip:
@@ -47,10 +46,21 @@ if not TB.foundChip:
 TB.SetBatteryMonitoringLimits(10, 13)  # Set LED Battery Indicator
 
 try:
-    TB.SetMotor1(motor_left)
-    TB.SetMotor2(motor_right)
+    # time.sleep(1)
+    t = 1
     while True:
-        time.sleep(1)
+        TB.SetMotor1(motor_left)
+        TB.SetMotor2(motor_right)
+        t += 1
+        if t % 2 == 0:
+            motor_right += 0.2
+            motor_left += 0.2
+        else:
+            motor_right -= 0.2
+            motor_left -= 0.2
+    # while True:
+        # time.sleep(1)
+        # print(TB.GetBatteryReading())
 except KeyboardInterrupt:
     pass
 TB.MotorsOff()
