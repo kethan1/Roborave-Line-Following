@@ -70,7 +70,6 @@ with picamera.PiCamera() as camera:
                     center_of_mass_y = 10
                     center_of_mass_x = 120
 
-
                 debugging = cv2.circle(
                     image,
                     (

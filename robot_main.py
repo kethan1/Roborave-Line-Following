@@ -6,7 +6,6 @@ import sys
 import time
 import json
 import math
-# import timeit
 import threading
 from typing import Dict, Union
 
@@ -31,7 +30,6 @@ TB.Init()                       # Set the board up (checks the board is connecte
 # TB2.Init()
 
 # Thunderborg Checks
-
 if not TB.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
     if len(boards) == 0:
@@ -61,9 +59,9 @@ P_VALUE: float = robot_config["P"]
 I_VALUE: float = robot_config["I"]
 D_VALUE: float = robot_config["D"]
 HALL_EFFECT_PIN: int = robot_config["HALL_EFFECT_PIN"]
-MAINTAIN_SPEED_P_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["P"]
-MAINTAIN_SPEED_I_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["I"]
-MAINTAIN_SPEED_D_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["D"]
+MAINTAIN_SPEED_P: float = robot_config["MAINTAIN_SPEED_PID"]["P"]
+MAINTAIN_SPEED_I: float = robot_config["MAINTAIN_SPEED_PID"]["I"]
+MAINTAIN_SPEED_D: float = robot_config["MAINTAIN_SPEED_PID"]["D"]
 GRAYSCALE_THRESHOLD: int = robot_config["GRAYSCALE_THRESHOLD"]
 BASE_SPEED: float = robot_config["BASE_SPEED"]
 INTERSECTION_PORTION: float = robot_config["INTERSECTION_PORTION"]
@@ -75,7 +73,7 @@ CROPPING: Dict[str, Union[bool, int]] = robot_config["CROPPING"]
 # Command line flags
 
 debug = False if "--prod" in sys.argv[1:] else robot_config["debug"]
-bl_wh = True if "--bl_wh" in sys.argv[1:] else False
+bl_wh = "--bl_wh" in sys.argv[1:]
 if "--P" in sys.argv[1:]:
     P_VALUE = float(sys.argv[sys.argv.index("--P") + 1])
 if "--I" in sys.argv[1:]:
@@ -105,13 +103,18 @@ show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
 LEFT, RIGHT = 0, 1
 
 
-image, finish, targetSpeed, towerFound, direct = None, False, 0, False, False
+finish, targetSpeed, towerFound = False, 0, False
 speed_separate = []
 intersection_turns = [RIGHT, LEFT, LEFT] * 10
 intersection_turns_index = 0
-rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv")
-maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_left.csv")
-maintain_speed_PID_right = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_right.csv")
+rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug,
+                     file="rev_per_second.csv")
+maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P, I=MAINTAIN_SPEED_I,
+                              D=MAINTAIN_SPEED_D,
+                              file="maintain_speed_left.csv")
+maintain_speed_PID_right = PID(P=MAINTAIN_SPEED_P, I=MAINTAIN_SPEED_I,
+                               D=MAINTAIN_SPEED_D,
+                               file="maintain_speed_right.csv")
 
 
 def imshow_debug(image_to_show, title):
@@ -126,10 +129,11 @@ def set_speed():
     global targetSpeed
     prevStepsLeft = prevStepsRight = prevTime = 0
 
-    # To get the speed from the encoders, we can track the numbers of steps between now
-    # and a previous time
+    # To get the speed from the encoders, we can track the numbers of steps
+    # between now and a previous time
     while not finish:
-        cTime, stepsLeft, stepsRight = time.time(), encoder_left.getSteps(), encoder_right.getSteps()
+        cTime, stepsLeft, stepsRight = time.time(), encoder_left.getSteps(), \
+            encoder_right.getSteps()
 
         current_speed_left = \
             ((stepsLeft - prevStepsLeft) / 3591.84) / (cTime - prevTime) * 3
@@ -137,19 +141,18 @@ def set_speed():
             ((stepsRight - prevStepsRight) / 3591.84) / (cTime - prevTime) * 3
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
-
-        if not speed_separate:
-            if targetSpeed != 0:
-                speed_left = maintain_speed_PID_left.update(BASE_SPEED - targetSpeed, current_speed_left)
-                speed_right = maintain_speed_PID_right.update(BASE_SPEED + targetSpeed, current_speed_right)
-            else:
-                speed_left = speed_right = 0
-        elif speed_separate:
-            if not direct:
-                speed_left = maintain_speed_PID_left.update(speed_separate[0], current_speed_left)
-                speed_right = maintain_speed_PID_right.update(speed_separate[1], current_speed_right)
-            else:
-                speed_left, speed_right = speed_separate
+        if speed_separate:
+            speed_left = maintain_speed_PID_left.update(speed_separate[0],
+                                                        current_speed_left)
+            speed_right = maintain_speed_PID_right.update(speed_separate[1],
+                                                          current_speed_right)
+        elif targetSpeed != 0:
+            speed_left = maintain_speed_PID_left.update(
+                BASE_SPEED - targetSpeed, current_speed_left)
+            speed_right = maintain_speed_PID_right.update(
+                BASE_SPEED + targetSpeed, current_speed_right)
+        else:
+            speed_left = speed_right = 0
 
         # If the motors drop too low, they won"t move. This brings up the
         # power level to 0.15 if it is lower than that.
@@ -158,9 +161,6 @@ def set_speed():
                 math.copysign(0.15, speed_left)
             speed_right = speed_right if abs(speed_right) > 0.15 else \
                 math.copysign(0.15, speed_right)
-
-        # if speed_separate:
-        #     print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
 
         TB.SetMotor1(speed_left)
         TB.SetMotor2(speed_right)
@@ -189,6 +189,7 @@ def end_program():
     TB.MotorsOff()
     sys.exit()
 
+
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
         camera.resolution = (320, 240)
@@ -206,9 +207,8 @@ with picamera.PiCamera() as camera:
         GPIO.output(LED_CONFIG["green"], GPIO.HIGH)
         set_speed_thread.start()
 
-        while True:
-            try:
-                # start_time = timeit.default_timer()
+        try:
+            while True:
                 camera.capture(stream, "bgr", use_video_port=True)
                 image = stream.array
 
@@ -221,7 +221,7 @@ with picamera.PiCamera() as camera:
 
                 if CROPPING["do"]:
                     cv2.rectangle(
-                        grayscale_image, (0, 0), 
+                        grayscale_image, (0, 0),
                         (CROPPING["left"] * width, height)
                     )
                     cv2.rectangle(
@@ -230,7 +230,8 @@ with picamera.PiCamera() as camera:
                         (height, width)
                     )
                     cv2.rectangle(
-                        grayscale_image, (0, 0), (width, CROPPING["top"] * height)
+                        grayscale_image, (0, 0),
+                        (width, CROPPING["top"] * height)
                     )
 
                 grayscale_image_resized = cv2.resize(
@@ -257,7 +258,7 @@ with picamera.PiCamera() as camera:
                     # and then move a certain amount forward so that the
                     # center of mass of the robot is over the intersection
                     time.sleep((0.0017 * (grayscale_image_resized.shape[0] - max_pixels_pos)) + 0.12)
-                    
+
                     if not towerFound:
                         if intersection_turns[intersection_turns_index] == RIGHT:
                             print("Turning Right for Intersection")
@@ -267,10 +268,10 @@ with picamera.PiCamera() as camera:
                             speed_separate = [-1.2, 1.2]
                     else:
                         if intersection_turns[intersection_turns_index] == LEFT:
-                            print("Turning Left for Intersection")
+                            print("Turning Right for Intersection")
                             speed_separate = [1.2, -1.2]
                         elif intersection_turns[intersection_turns_index] == RIGHT:
-                            print("Turning Right for Intersection")
+                            print("Turning Left for Intersection")
                             speed_separate = [-1.2, 1.2]
                     time.sleep(0.475)
                     speed_separate = []
@@ -296,7 +297,8 @@ with picamera.PiCamera() as camera:
                             scipy.ndimage.center_of_mass(cropped_image)
                         break
 
-                if not line_found or (np.sum(grayscale_image) < 50 * 255):  # Criteria for line lost
+                # Criterea for line lost
+                if not line_found or (np.sum(grayscale_image) < 50 * 255):
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["red"])
                     print("Line Lost")
                     targetSpeed = 0
@@ -342,23 +344,19 @@ with picamera.PiCamera() as camera:
                     break
 
                 if GPIO.event_detected(HALL_EFFECT_PIN) and not towerFound:
-                    direct = towerFound = True
-                    intersection_turns = intersection_turns[::-1]
+                    towerFound = True
+                    intersection_turns.reverse()
+                    intersection_turns_index = 0
                     print("Magnet detected")
-                    speed_separate = [0, 0]
+                    targetSpeed = 0
                     time.sleep(5)
-                    direct = False
                     speed_separate = [-1.2, -1.2]
                     time.sleep(0.5)
                     speed_separate = [-1.2, 1.2]
                     time.sleep(0.85)
                     speed_separate = []
-                    intersection_turns_index = 0
-                # end_time = timeit.default_timer()
-                # print(f"Frame Time: {1/(end_time-start_time)}")
-            except KeyboardInterrupt:
-                end_program()
+        except KeyboardInterrupt:
+            end_program()
 
 if not finish:
     end_program()
-
