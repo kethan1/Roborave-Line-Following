@@ -11,13 +11,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfi
 import Libraries.Thunderborg as ThunderBorg
 
 TB = ThunderBorg.ThunderBorg()   # Create a new ThunderBorg object
-TB.i2cAddress = 10               # Uncomment and change the value if you have changed the board address
+TB.i2cAddress = 0x15              # Uncomment and change the value if you have changed the board address
 TB.Init()
 
 TB2 = ThunderBorg.ThunderBorg()
 TB2.i2cAddress = 0x15
 TB2.Init()
-                        # Set the board up (checks the board is connected)
+# Set the board up (checks the board is connected)
 if not TB.foundChip or not TB2.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
     if len(boards) == 0:
@@ -28,7 +28,7 @@ if not TB.foundChip or not TB2.foundChip:
             print('    %02X (%d)' % (board, board))
         print('If you need to change the I²C address change the setup line so it is correct, e.g.')
         print('TB.i2cAddress = 0x%02X' % (boards[0]))
-    sys.exit()
+    # sys.exit()
 
 TB.MotorsOff()
 TB2.MotorsOff()

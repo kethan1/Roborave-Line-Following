@@ -19,10 +19,7 @@ import scipy.ndimage
 
 import Libraries.Thunderborg as ThunderBorg
 from PID import PID
-from hall_effect_sensor import Hall_Effect_Sensor
 from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encoder
-
-
 
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
@@ -63,6 +60,7 @@ with open("robot_config.json") as robot_config_file:
 P_VALUE: float = robot_config["P"]
 I_VALUE: float = robot_config["I"]
 D_VALUE: float = robot_config["D"]
+HALL_EFFECT_PIN: int = robot_config["HALL_EFFECT_PIN"]
 MAINTAIN_SPEED_P_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["P"]
 MAINTAIN_SPEED_I_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["I"]
 MAINTAIN_SPEED_D_VALUE: float = robot_config["MAINTAIN_SPEED_PID"]["D"]
@@ -89,32 +87,25 @@ if not debug and "--print-prod" in sys.argv[1:]:
     sys.stdout = None
 
 
-def magnet_callback(pin):
-    print("Magnet detected")
-    # TB2.SetMotor1(1)
-    # time.sleep(10)
-    # TB2.SetMotor1(0)
-
-
 initialize_encoder()
 encoder_left = Encoder(*robot_config["Encoder_Left"])
 encoder_right = Encoder(*robot_config["Encoder_Right"])
-hall_effect_sensor = Hall_Effect_Sensor(16, magnet_callback)
 
 
 GPIO.setmode(GPIO.BCM)
 pinlistOut = list(LED_CONFIG.values()) + []
-pinlistIn = []
+pinlistIn = [HALL_EFFECT_PIN]
 # Motor1 - Right
 # Motor2 - Left
 GPIO.setup(pinlistOut, GPIO.OUT)
 GPIO.setup(pinlistIn, GPIO.IN)
+GPIO.add_event_detect(HALL_EFFECT_PIN, GPIO.FALLING)
 GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
 show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
 LEFT, RIGHT = 0, 1
 
 
-image, finish, targetSpeed, towerFound = None, False, 0, False
+image, finish, targetSpeed, towerFound, direct = None, False, 0, False, False
 speed_separate = []
 intersection_turns = [RIGHT, LEFT, LEFT] * 10
 intersection_turns_index = 0
@@ -154,8 +145,11 @@ def set_speed():
             else:
                 speed_left = speed_right = 0
         elif speed_separate:
-            speed_left = maintain_speed_PID_left.update(speed_separate[0], current_speed_left)
-            speed_right = maintain_speed_PID_right.update(speed_separate[1], current_speed_right)
+            if not direct:
+                speed_left = maintain_speed_PID_left.update(speed_separate[0], current_speed_left)
+                speed_right = maintain_speed_PID_right.update(speed_separate[1], current_speed_right)
+            else:
+                speed_left, speed_right = speed_separate
 
         # If the motors drop too low, they won"t move. This brings up the
         # power level to 0.15 if it is lower than that.
@@ -182,17 +176,18 @@ set_speed_thread = threading.Thread(target=set_speed)
 # Ending program function -- Closes everything
 def end_program():
     global finish
+    # global hall_effect_sensor
 
     print("Ending Program")
     finish = True
     cv2.destroyAllWindows()
     GPIO.output(list(LED_CONFIG.values()), GPIO.LOW)
+    # del hall_effect_sensor
     GPIO.cleanup()
     rev_per_second.close()
     set_speed_thread.join()
     TB.MotorsOff()
     sys.exit()
-
 
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
@@ -265,22 +260,18 @@ with picamera.PiCamera() as camera:
                     
                     if not towerFound:
                         if intersection_turns[intersection_turns_index] == RIGHT:
-                            # print(f"Intersection Turn: {intersection_turns}")
                             print("Turning Right for Intersection")
                             speed_separate = [1.2, -1.2]
                         elif intersection_turns[intersection_turns_index] == LEFT:
-                            # print(f"Intersection Turn: {intersection_turns}")
                             print("Turning Left for Intersection")
-                            speed_separate = [-1.2, 1.2]  # Faster speed because motors are different
+                            speed_separate = [-1.2, 1.2]
                     else:
                         if intersection_turns[intersection_turns_index] == LEFT:
-                            # print(f"Intersection Turn: {intersection_turns}")
                             print("Turning Left for Intersection")
                             speed_separate = [1.2, -1.2]
                         elif intersection_turns[intersection_turns_index] == RIGHT:
-                            # print(f"Intersection Turn: {intersection_turns}")
                             print("Turning Right for Intersection")
-                            speed_separate = [-1.2, 1.2]  # Faster speed because motors are different
+                            speed_separate = [-1.2, 1.2]
                     time.sleep(0.475)
                     speed_separate = []
                     targetSpeed = 0
@@ -349,6 +340,20 @@ with picamera.PiCamera() as camera:
 
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
+
+                if GPIO.event_detected(HALL_EFFECT_PIN) and not towerFound:
+                    direct = towerFound = True
+                    intersection_turns = intersection_turns[::-1]
+                    print("Magnet detected")
+                    speed_separate = [0, 0]
+                    time.sleep(5)
+                    direct = False
+                    speed_separate = [-1.2, -1.2]
+                    time.sleep(0.5)
+                    speed_separate = [-1.2, 1.2]
+                    time.sleep(0.85)
+                    speed_separate = []
+                    intersection_turns_index = 0
                 # end_time = timeit.default_timer()
                 # print(f"Frame Time: {1/(end_time-start_time)}")
             except KeyboardInterrupt:

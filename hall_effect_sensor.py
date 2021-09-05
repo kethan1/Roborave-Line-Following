@@ -5,7 +5,7 @@ GPIO.setmode(GPIO.BCM)
 
 
 class Hall_Effect_Sensor:
-    def __init__(self, pin: int, callback=None, bouncetime: int=200):
+    def __init__(self, pin: int, callback=None, bouncetime: int=25):
         self.pin = GPIO.setup(pin, GPIO.IN)
         self.pin_num = pin
         if callback is None:
