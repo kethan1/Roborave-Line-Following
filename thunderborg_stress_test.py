@@ -27,7 +27,7 @@ except IndexError:
 print(f"Running at left motor at {motor_left} speed, and Running the right motor at {motor_right}")
 
 TB = ThunderBorg.ThunderBorg()
-TB.i2cAddress = 10
+TB.i2cAddress = 0x15
 TB.Init()
 
 # Thunderborg Checks

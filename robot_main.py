@@ -68,6 +68,7 @@ INTERSECTION_PORTION: float = robot_config["INTERSECTION_PORTION"]
 LED_CONFIG: Dict[str, int] = robot_config["LED_CONFIG"]
 LED_COLOR_COMBOS: Dict[str, Dict[str, int]] = robot_config["LED_COLOR_COMBOS"]
 CROPPING: Dict[str, Union[bool, int]] = robot_config["CROPPING"]
+L298N_PINS: Dict[str, int] = robot_config["L298N_PINS"]
 
 
 # Command line flags
@@ -91,7 +92,7 @@ encoder_right = Encoder(*robot_config["Encoder_Right"])
 
 
 GPIO.setmode(GPIO.BCM)
-pinlistOut = list(LED_CONFIG.values()) + []
+pinlistOut = list(LED_CONFIG.values()) + [*L298N_PINS.values()]
 pinlistIn = [HALL_EFFECT_PIN]
 # Motor1 - Right
 # Motor2 - Left
@@ -349,11 +350,13 @@ with picamera.PiCamera() as camera:
                     intersection_turns_index = 0
                     print("Magnet detected")
                     targetSpeed = 0
+                    GPIO.output(L298N_PINS["FORWARD"], GPIO.HIGH)
                     time.sleep(5)
+                    GPIO.output(L298N_PINS["FORWARD"], GPIO.LOW)
                     speed_separate = [-1.2, -1.2]
                     time.sleep(0.5)
                     speed_separate = [-1.2, 1.2]
-                    time.sleep(0.85)
+                    time.sleep(0.8)
                     speed_separate = []
         except KeyboardInterrupt:
             end_program()

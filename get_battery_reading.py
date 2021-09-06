@@ -9,7 +9,7 @@ import sys
 import time
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-TB.i2cAddress = 10           # Uncomment and change the value if you have changed the board address
+TB.i2cAddress = 0x15            # Uncomment and change the value if you have changed the board address
 TB.Init()                       # Set the board up (checks the board is connected)
 if not TB.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()

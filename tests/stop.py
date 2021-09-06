@@ -5,10 +5,21 @@
 import os
 import sys
 import inspect
+import json
+from typing import Dict
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
 
 import Libraries.Thunderborg as ThunderBorg
+import RPi.GPIO as GPIO
+
+with open("robot_config.json") as robot_config_file:
+    robot_config = json.load(robot_config_file)
+L298N_PINS: Dict[str, int] = robot_config["L298N_PINS"]
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setup([*L298N_PINS.values()], GPIO.OUT)
+
 
 TB = ThunderBorg.ThunderBorg()   # Create a new ThunderBorg object
 TB.i2cAddress = 0x15              # Uncomment and change the value if you have changed the board address
@@ -32,3 +43,6 @@ if not TB.foundChip or not TB2.foundChip:
 
 TB.MotorsOff()
 TB2.MotorsOff()
+
+GPIO.output(list(L298N_PINS.values()), GPIO.LOW)
+GPIO.cleanup()

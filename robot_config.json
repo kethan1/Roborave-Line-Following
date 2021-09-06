@@ -1,6 +1,10 @@
 {
     "Encoder_Left": [22, 25],
     "Encoder_Right": [23, 24],
+    "L298N_PINS": {
+        "BACKWARD": 5,
+        "FORWARD": 12
+    },
     "HALL_EFFECT_PIN": 16,
     "P": 0.025,
     "I": 0,
