@@ -36,6 +36,8 @@ jobs:
         run: |
           git checkout -B black_branch
           black .
+          git config --global user.email "kethan@vegunta.com"
+          git config --global user.name "Kethan Vegunta"
           git add .
           git commit -m "ran black github action"
           git push origin main
