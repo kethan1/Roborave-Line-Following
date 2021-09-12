@@ -36,4 +36,4 @@ jobs:
         run: |
           git checkout -b black_branch
           black .
-          git push origin black_branch -force
+          git push origin black_branch --force
