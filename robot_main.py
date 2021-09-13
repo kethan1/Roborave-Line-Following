@@ -165,7 +165,7 @@ def set_speed():
 
         TB.SetMotor1(speed_left)
         TB.SetMotor2(speed_right)
-        time.sleep(0.005)
+        time.sleep(0.01)
 
     maintain_speed_PID_left.close()
     maintain_speed_PID_right.close()

@@ -46,21 +46,18 @@ if not TB.foundChip:
 TB.SetBatteryMonitoringLimits(10, 13)  # Set LED Battery Indicator
 
 try:
-    # time.sleep(1)
-    t = 1
+    loop = 1
     while True:
         TB.SetMotor1(motor_left)
         TB.SetMotor2(motor_right)
-        t += 1
-        if t % 2 == 0:
-            motor_right += 0.2
-            motor_left += 0.2
+        loop += 1
+        if loop % 2 == 0:
+            motor_right += 0.41
+            motor_left += 0.41
         else:
-            motor_right -= 0.2
-            motor_left -= 0.2
-    # while True:
-        # time.sleep(1)
-        # print(TB.GetBatteryReading())
+            motor_right -= 0.41
+            motor_left -= 0.41
+        # print(TB.GetBatteryReading(), end='\r')
 except KeyboardInterrupt:
     pass
 TB.MotorsOff()

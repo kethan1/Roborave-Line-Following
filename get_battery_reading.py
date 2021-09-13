@@ -29,7 +29,8 @@ TB.SetBatteryMonitoringLimits(11, 13)
 
 try:
     while True:
-        print(TB.GetBatteryReading(), end='\r')
+        # print(TB.GetBatteryReading(), end='\r')
+        TB.GetBatteryReading()
         # battery_reading = TB.GetBatteryReading()
         # if battery_reading is not None:
         #     print(battery_reading)
