@@ -130,6 +130,8 @@ def set_speed():
     global targetSpeed
     prevStepsLeft = prevStepsRight = prevTime = 0
 
+    lock = threading.RLock()
+
     # To get the speed from the encoders, we can track the numbers of steps
     # between now and a previous time
     while not finish:
@@ -142,26 +144,28 @@ def set_speed():
             ((stepsRight - prevStepsRight) / 3591.84) / (cTime - prevTime) * 3
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
-        if speed_separate:
-            speed_left = maintain_speed_PID_left.update(speed_separate[0],
-                                                        current_speed_left)
-            speed_right = maintain_speed_PID_right.update(speed_separate[1],
-                                                          current_speed_right)
-        elif targetSpeed != 0:
-            speed_left = maintain_speed_PID_left.update(
-                BASE_SPEED - targetSpeed, current_speed_left)
-            speed_right = maintain_speed_PID_right.update(
-                BASE_SPEED + targetSpeed, current_speed_right)
-        else:
-            speed_left = speed_right = 0
+        with lock:
+            if speed_separate:
+                speed_left = maintain_speed_PID_left.update(speed_separate[0],
+                                                            current_speed_left)
+                speed_right = maintain_speed_PID_right.update(speed_separate[1],
+                                                            current_speed_right)
+            elif targetSpeed != 0:
+                speed_left = maintain_speed_PID_left.update(
+                    BASE_SPEED - targetSpeed, current_speed_left)
+                speed_right = maintain_speed_PID_right.update(
+                    BASE_SPEED + targetSpeed, current_speed_right)
+            else:
+                speed_left = speed_right = 0
 
         # If the motors drop too low, they won"t move. This brings up the
         # power level to 0.15 if it is lower than that.
-        if speed_separate or targetSpeed != 0:
-            speed_left = speed_left if abs(speed_left) > 0.15 else \
-                math.copysign(0.15, speed_left)
-            speed_right = speed_right if abs(speed_right) > 0.15 else \
-                math.copysign(0.15, speed_right)
+        with lock:
+            if speed_separate or targetSpeed != 0:
+                speed_left = speed_left if abs(speed_left) > 0.15 else \
+                    math.copysign(0.15, speed_left)
+                speed_right = speed_right if abs(speed_right) > 0.15 else \
+                    math.copysign(0.15, speed_right)
 
         TB.SetMotor1(speed_left)
         TB.SetMotor2(speed_right)
@@ -193,6 +197,7 @@ def end_program():
 
 with picamera.PiCamera() as camera:
     with picamera.array.PiRGBArray(camera) as stream:
+        lock = threading.RLock()
         camera.resolution = (320, 240)
         # Capture 40 frames to get the camera to warmup
         for _ in range(40):
@@ -315,8 +320,9 @@ with picamera.PiCamera() as camera:
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["green"])
 
                 targetSpeed_tmp = rev_per_second.update(width/2, center_of_mass_x)
-                targetSpeed = targetSpeed_tmp if abs(targetSpeed_tmp) <= 1.4 \
-                    else math.copysign(1.4, targetSpeed_tmp)
+                with lock:
+                    targetSpeed = targetSpeed_tmp if abs(targetSpeed_tmp) <= 1.4 \
+                        else math.copysign(1.4, targetSpeed_tmp)
 
                 if not bl_wh:
                     imshow_debug(
