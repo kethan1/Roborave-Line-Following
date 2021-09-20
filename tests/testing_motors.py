@@ -19,7 +19,7 @@ expected_behavior = {
     6: "right backward"
 }
 
-GPIO.setup(pins+EN_PINs, GPIO.OUT)
+GPIO.setup(pins + EN_PINs, GPIO.OUT)
 GPIO.output(pins, 0)
 GPIO.output(EN_PINs, 1)
 try:

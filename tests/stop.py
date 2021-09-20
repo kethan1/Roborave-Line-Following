@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfi
 import Libraries.Thunderborg as ThunderBorg
 import RPi.GPIO as GPIO
 
-with open("robot_config.json") as robot_config_file:
+with open(os.path.join(os.path.dirname(__file__), "..", "robot_config.json")) as robot_config_file:
     robot_config = json.load(robot_config_file)
 L298N_PINS: Dict[str, int] = robot_config["L298N_PINS"]
 

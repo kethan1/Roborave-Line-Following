@@ -40,7 +40,7 @@ if not TB1.foundChip or not TB2.foundChip:
             print("    %02X (%d)" % (board, board))
         print("If you need to change the I²C address change the setup line so it is correct, e.g.")
         print("TB1.i2cAddress = 0x%02X" % (boards[0]))
-    sys.exit()
+    # sys.exit()
 
 initialize_encoder()
 
@@ -68,8 +68,9 @@ BASE_SPEED: float = robot_config["BASE_SPEED"]
 INTERSECTION_PORTION: float = robot_config["INTERSECTION_PORTION"]
 LED_CONFIG: Dict[str, int] = robot_config["LED_CONFIG"]
 LED_COLOR_COMBOS: Dict[str, Dict[str, int]] = robot_config["LED_COLOR_COMBOS"]
+L298N_PINS: Dict[str, int] = robot_config["L298N_PINS"]
 
-pinlistOut = list(LED_CONFIG.values())
+pinlistOut = list(LED_CONFIG.values()) + list(L298N_PINS.values())
 GPIO.setup(pinlistOut, GPIO.OUT)
 GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
 
@@ -104,13 +105,13 @@ def test_motors():
     else:
         print("Motors moved backward! Test success!")
 
-    TB2.SetMotor1(1)
-    time.sleep(1)
-    TB2.SetMotor1(0)
-    if input("Did the vibration motor vibrate for 1 second? ").lower() == "no":
-        raise HardwareFailure("The vibration motors did not move backward!")
-    else:
-        print("The vibration motors vibrated! Test success!")
+    # TB2.SetMotor1(1)
+    # time.sleep(1)
+    # TB2.SetMotor1(0)
+    # if input("Did the vibration motor vibrate for 1 second? ").lower() == "no":
+    #     raise HardwareFailure("The vibration motors did not move backward!")
+    # else:
+    #     print("The vibration motors vibrated! Test success!")
 
 
 def test_magnet_sensor():
@@ -320,6 +321,18 @@ def test_leds() -> None:
         print(f"The RGB led is off!")
 
 
+def test_l298_motors() -> None:
+    GPIO.output(L298N_PINS["FORWARD"], GPIO.HIGH)
+    time.sleep(1)
+    GPIO.output(L298N_PINS["FORWARD"], GPIO.LOW)
+
+    if input("Did the vibration motor (connected to the L298N) move forward for 1 second? ").lower() == "no":
+        raise HardwareFailure("Motors Did Not Move Forward!")
+    else:
+        print("Motors moved forward! Test success!")
+
+
+
 if not sys.argv[1:]:
     test_motors()
     test_magnet_sensor()
@@ -327,6 +340,7 @@ if not sys.argv[1:]:
     test_intersection()
     test_encoder()
     test_leds()
+    test_l298_motors()
 else:
     if "--motors" in sys.argv[1]:
         test_motors()
@@ -340,6 +354,8 @@ else:
         test_encoder()
     if "--leds" in sys.argv[1:]:
         test_leds()
+    if "--l298-motors" in sys.argv[1:]:
+        test_l298_motors()
     if "--help" in sys.argv[1:]:
         print(
             """

@@ -69,6 +69,7 @@ LED_CONFIG: Dict[str, int] = robot_config["LED_CONFIG"]
 LED_COLOR_COMBOS: Dict[str, Dict[str, int]] = robot_config["LED_COLOR_COMBOS"]
 CROPPING: Dict[str, Union[bool, int]] = robot_config["CROPPING"]
 L298N_PINS: Dict[str, int] = robot_config["L298N_PINS"]
+STOP_SWITCH: int = robot_config["STOP_SWITCH"]
 
 
 # Command line flags
@@ -98,7 +99,9 @@ pinlistIn = [HALL_EFFECT_PIN]
 # Motor2 - Left
 GPIO.setup(pinlistOut, GPIO.OUT)
 GPIO.setup(pinlistIn, GPIO.IN)
+GPIO.setup(STOP_SWITCH, GPIO.IN, GPIO.PUD_DOWN)
 GPIO.add_event_detect(HALL_EFFECT_PIN, GPIO.FALLING)
+GPIO.add_event_detect(STOP_SWITCH, GPIO.RISING)
 GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
 show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
 LEFT, RIGHT = 0, 1
@@ -181,7 +184,6 @@ set_speed_thread = threading.Thread(target=set_speed)
 # Ending program function -- Closes everything
 def end_program():
     global finish
-    # global hall_effect_sensor
 
     print("Ending Program")
     finish = True
@@ -263,15 +265,15 @@ with picamera.PiCamera() as camera:
                     # the start of the robot"s camera is at the intersection,
                     # and then move a certain amount forward so that the
                     # center of mass of the robot is over the intersection
-                    time.sleep((0.0017 * (grayscale_image_resized.shape[0] - max_pixels_pos)) + 0.12)
+                    time.sleep((0.00162 * (grayscale_image_resized.shape[0] - max_pixels_pos)) + 0.1)
 
                     if not towerFound:
                         if intersection_turns[intersection_turns_index] == RIGHT:
                             print("Turning Right for Intersection")
-                            speed_separate = [1.2, -1.2]
+                            speed_separate = [1.1, -1.1]
                         elif intersection_turns[intersection_turns_index] == LEFT:
                             print("Turning Left for Intersection")
-                            speed_separate = [-1.2, 1.2]
+                            speed_separate = [-1.1, 1.1]
                     else:
                         if intersection_turns[intersection_turns_index] == LEFT:
                             print("Turning Right for Intersection")
@@ -364,6 +366,17 @@ with picamera.PiCamera() as camera:
                     speed_separate = [-1.2, 1.2]
                     time.sleep(0.8)
                     speed_separate = []
+
+                if GPIO.event_detected(STOP_SWITCH):
+                    print("STOP SWITCH ON")
+                    towerFound = False
+                    targetSpeed = 0
+                    speed_separate = [-1.2, 1.2]
+                    time.sleep(0.8)
+                    speed_separate = []
+                    show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
+                    intersection_turns.reverse()
+                    time.sleep(10)
         except KeyboardInterrupt:
             end_program()
 

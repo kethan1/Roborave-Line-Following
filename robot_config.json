@@ -6,6 +6,7 @@
         "FORWARD": 12
     },
     "HALL_EFFECT_PIN": 16,
+    "STOP_SWITCH": 17,
     "P": 0.025,
     "I": 0,
     "D": 0.024,
