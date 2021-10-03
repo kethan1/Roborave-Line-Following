@@ -28,13 +28,11 @@ if "--prod" in sys.argv[1:]:
 if "--bl_wh" in sys.argv[1:]:
     bl_wh = True
 if "--P" in sys.argv[1:]:
-    P_VALUE = float(sys.argv[sys.argv.index("--P")+1])
+    P_VALUE = float(sys.argv[sys.argv.index("--P") + 1])
 if "--I" in sys.argv[1:]:
-    I_VALUE = float(sys.argv[sys.argv.index("--I")+1])
+    I_VALUE = float(sys.argv[sys.argv.index("--I") + 1])
 if "--D" in sys.argv[1:]:
-    D_VALUE = float(sys.argv[sys.argv.index("--D")+1])
-
-
+    D_VALUE = float(sys.argv[sys.argv.index("--D") + 1])
 
 
 def imshow_debug(image_to_show, title):
@@ -78,6 +76,7 @@ BACKWARD = 1
 
 ENA_PWM.start(1)
 ENB_PWM.start(1)
+
 
 def motor_move(side, direction, speed):
     print(f"Side: {side}, Direction: {direction}, Speed: {speed}")
@@ -124,12 +123,12 @@ def motor_move_interface(equation_output):
         motor_left = robot_config["MAX_SPEED"]
     elif motor_left < -robot_config["MAX_SPEED"]:
         motor_left = -robot_config["MAX_SPEED"]
-    
+
     if motor_right > robot_config["MAX_SPEED"]:
         motor_right = robot_config["MAX_SPEED"]
     elif motor_right < -robot_config["MAX_SPEED"]:
         motor_right = -robot_config["MAX_SPEED"]
-        
+
     print(f"Motor Speeds, Left: {motor_left}, Right: {motor_right}")
 
     if motor_left > 0:
@@ -160,13 +159,15 @@ with picamera.PiCamera() as camera:
                 image = cv2.rotate(image, cv2.cv2.ROTATE_180)
                 # grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 _, grayscale_image = cv2.threshold(
-                    cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), GRAYSCALE_THRESHOLD, \
-                    255, cv2.THRESH_BINARY_INV
+                    cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
+                    GRAYSCALE_THRESHOLD,
+                    255,
+                    cv2.THRESH_BINARY_INV,
                 )
 
                 height, width = grayscale_image.shape
 
-                if np.sum(grayscale_image) < 50*255:
+                if np.sum(grayscale_image) < 50 * 255:
                     print("Line Lost")
                     GPIO.cleanup()
                     currentPID.close()
@@ -174,10 +175,12 @@ with picamera.PiCamera() as camera:
                     sys.exit()
 
                 for current_y in range(0, height, 20):
-                    cropped_image = grayscale_image[current_y:current_y+20, 0:-1]
-                    if np.sum(cropped_image) > 20*255 and current_y+20 < height:
-                        center_of_mass_y, center_of_mass_x = scipy.ndimage.center_of_mass(
-                            cropped_image)
+                    cropped_image = grayscale_image[current_y : current_y + 20, 0:-1]
+                    if np.sum(cropped_image) > 20 * 255 and current_y + 20 < height:
+                        (
+                            center_of_mass_y,
+                            center_of_mass_x,
+                        ) = scipy.ndimage.center_of_mass(cropped_image)
                         break
                 if cropped_image is None:
                     print("Line Lost")
@@ -186,22 +189,37 @@ with picamera.PiCamera() as camera:
                     print(1)
                     sys.exit()
 
-                pid_equation_output = currentPID.update(
-                    width/2, center_of_mass_x)
+                pid_equation_output = currentPID.update(width / 2, center_of_mass_x)
 
                 print(pid_equation_output)
                 motor_move_interface(pid_equation_output)
 
                 if not bl_wh:
-                    debugging = cv2.circle(image, (custom_round(
-                        center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
+                    debugging = cv2.circle(
+                        image,
+                        (
+                            custom_round(center_of_mass_x),
+                            current_y + custom_round(center_of_mass_y),
+                        ),
+                        10,
+                        (0, 0, 255),
+                        10,
+                    )
                 else:
                     grayBGR = cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR)
-                    debugging = cv2.circle(grayBGR, (custom_round(
-                        center_of_mass_x), current_y+custom_round(center_of_mass_y)), 10, (0, 0, 255), 10)
+                    debugging = cv2.circle(
+                        grayBGR,
+                        (
+                            custom_round(center_of_mass_x),
+                            current_y + custom_round(center_of_mass_y),
+                        ),
+                        10,
+                        (0, 0, 255),
+                        10,
+                    )
                 debugging = cv2.rotate(debugging, cv2.cv2.ROTATE_180)
                 imshow_debug("Video Stream with Circle", debugging)
-    
+
                 stream.seek(0)
                 stream.truncate()
 
@@ -211,7 +229,6 @@ with picamera.PiCamera() as camera:
                 print(f"Frame Time: {(end_time-start_time)}")
             except KeyboardInterrupt:
                 break
-        
 
 
 print("Ending Program")

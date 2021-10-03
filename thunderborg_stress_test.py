@@ -24,7 +24,9 @@ except ValueError:
 except IndexError:
     pass
 
-print(f"Running at left motor at {motor_left} speed, and Running the right motor at {motor_right}")
+print(
+    f"Running at left motor at {motor_left} speed, and Running the right motor at {motor_right}"
+)
 
 TB = ThunderBorg.ThunderBorg()
 TB.i2cAddress = 0x15
@@ -39,7 +41,9 @@ if not TB.foundChip:
         print(f"No ThunderBorg at address {TB.i2cAddress}, but we did find boards:")
         for board in boards:
             print("    %02X (%d)" % (board, board))
-        print("If you need to change the I²C address change the setup line so it is correct, e.g.")
+        print(
+            "If you need to change the I²C address change the setup line so it is correct, e.g."
+        )
         print("TB.i2cAddress = 0x%02X" % (boards[0]))
     sys.exit()
 

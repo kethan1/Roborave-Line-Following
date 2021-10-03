@@ -13,7 +13,12 @@ from typing import Dict
 
 GPIO.setmode(GPIO.BCM)
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))))
+sys.path.insert(
+    0,
+    os.path.dirname(
+        os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    ),
+)
 
 import Libraries.Thunderborg as ThunderBorg
 from hall_effect_sensor import Hall_Effect_Sensor
@@ -22,8 +27,10 @@ from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encode
 
 
 TB1 = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-TB1.i2cAddress = 10              # Uncomment and change the value if you have changed the board address
-TB1.Init()                       # Set the board up (checks the board is connected)
+TB1.i2cAddress = (
+    10  # Uncomment and change the value if you have changed the board address
+)
+TB1.Init()  # Set the board up (checks the board is connected)
 
 TB2 = ThunderBorg.ThunderBorg()
 TB2.i2cAddress = 0x15
@@ -38,7 +45,9 @@ if not TB1.foundChip or not TB2.foundChip:
         print(f"No ThunderBorg at address {TB1.i2cAddress}, but we did find boards:")
         for board in boards:
             print("    %02X (%d)" % (board, board))
-        print("If you need to change the I²C address change the setup line so it is correct, e.g.")
+        print(
+            "If you need to change the I²C address change the setup line so it is correct, e.g."
+        )
         print("TB1.i2cAddress = 0x%02X" % (boards[0]))
     # sys.exit()
 
@@ -46,6 +55,7 @@ initialize_encoder()
 
 TB1.SetBatteryMonitoringLimits(10, 13)  # Set LED Battery Indicator
 print(f"Battery Level Not Underload: {TB1.GetBatteryReading()}")
+
 
 class HardwareFailure(Exception):
     __module__ = Exception.__module__
@@ -77,6 +87,7 @@ GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
 encoder_left = Encoder(*robot_config["Encoder_Left"])
 encoder_right = Encoder(*robot_config["Encoder_Right"])
 
+
 def test_motors():
     TB1.SetMotor1(1)
     TB1.SetMotor2(1)
@@ -86,8 +97,6 @@ def test_motors():
     time.sleep(0.5)
     TB1.SetMotor1(0)
     TB1.SetMotor2(0)
-
-    
 
     if input("Did the motors move forward for 1 second? ").lower() == "no":
         raise HardwareFailure("Motors Did Not Move Forward!")
@@ -116,6 +125,7 @@ def test_motors():
 
 def test_magnet_sensor():
     detected = 0
+
     def magnet_callback_found(*_, **__):
         nonlocal detected
         detected = 1 - hall_effect_sensor.read()
@@ -145,10 +155,12 @@ def test_camera():
             for _ in range(40):
                 camera.capture(stream, "bgr", use_video_port=True)
                 image = stream.array
-                 
+
                 _, grayscale_image = cv2.threshold(
                     cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
-                    GRAYSCALE_THRESHOLD, 255, cv2.THRESH_BINARY_INV
+                    GRAYSCALE_THRESHOLD,
+                    255,
+                    cv2.THRESH_BINARY_INV,
                 )
 
                 cv2.imshow("Image: 0", image)
@@ -163,7 +175,9 @@ def test_camera():
 
                 _, grayscale_image = cv2.threshold(
                     cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
-                    GRAYSCALE_THRESHOLD, 255, cv2.THRESH_BINARY_INV
+                    GRAYSCALE_THRESHOLD,
+                    255,
+                    cv2.THRESH_BINARY_INV,
                 )
 
                 cv2.imshow(f"Image: {image_index  + 1}", image)
@@ -174,8 +188,15 @@ def test_camera():
 
             cv2.waitKey(0)
             cv2.destroyAllWindows()
-            if input("Do the images and the black and white images look good? ").lower() == "no":
-                raise HardwareFailure("Camera images or black and white thresholding is not working")
+            if (
+                input(
+                    "Do the images and the black and white images look good? "
+                ).lower()
+                == "no"
+            ):
+                raise HardwareFailure(
+                    "Camera images or black and white thresholding is not working"
+                )
             else:
                 print("Camera works! Test succeded!")
 
@@ -184,7 +205,9 @@ def test_intersection():
     with picamera.PiCamera() as camera:
         with picamera.array.PiRGBArray(camera) as stream:
             camera.resolution = (320, 240)
-            input("Please put the robot where is can see an intersection. Press enter when done: ")
+            input(
+                "Please put the robot where is can see an intersection. Press enter when done: "
+            )
             for _ in range(40):
                 camera.capture(stream, "bgr", use_video_port=True)
                 image = stream.array
@@ -197,14 +220,15 @@ def test_intersection():
 
             _, grayscale_image = cv2.threshold(
                 cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
-                GRAYSCALE_THRESHOLD, 255, cv2.THRESH_BINARY_INV
+                GRAYSCALE_THRESHOLD,
+                255,
+                cv2.THRESH_BINARY_INV,
             )
 
             grayscale_image_resized = cv2.resize(
-                grayscale_image, dsize=(
-                    int(image.shape[1] * 0.4), int(image.shape[0] * 0.4)
-                ),
-                interpolation=cv2.INTER_AREA
+                grayscale_image,
+                dsize=(int(image.shape[1] * 0.4), int(image.shape[0] * 0.4)),
+                interpolation=cv2.INTER_AREA,
             )
 
             pixels_sum = np.sum(grayscale_image_resized, 1)
@@ -216,7 +240,9 @@ def test_intersection():
                 intersection_detected = True
 
             if not intersection_detected:
-                raise HardwareFailure("Intersection detected not working. No intersection detected")
+                raise HardwareFailure(
+                    "Intersection detected not working. No intersection detected"
+                )
             else:
                 print("Intersection detected! Test success!")
             stream.seek(0)
@@ -227,7 +253,9 @@ def test_encoder() -> None:
     encoder_left = Encoder(*robot_config["Encoder_Left"])
     encoder_right = Encoder(*robot_config["Encoder_Right"])
 
-    input("Hold the robot in the air. It will be moving forward. Press enter when you are ready: ")
+    input(
+        "Hold the robot in the air. It will be moving forward. Press enter when you are ready: "
+    )
     TB1.SetMotor1(1)
     TB1.SetMotor2(1)
 
@@ -241,19 +269,19 @@ def test_encoder() -> None:
         stepsLeft = encoder_left.getSteps()
         stepsRight = encoder_right.getSteps()
         speedLeft = ((stepsLeft - prevStepsLeft) / (cTime - prevTime) * 3) / 3591.84
-        speedRight = ((stepsRight - prevStepsRight) / (cTime - prevTime) * 3) / 3591.84 
+        speedRight = ((stepsRight - prevStepsRight) / (cTime - prevTime) * 3) / 3591.84
         prevTime = cTime
         prevStepsLeft = stepsLeft
         prevStepsRight = stepsRight
         # print(f"Left, Steps: {encoder_left.getSteps()}, Direction: {encoder_left.getDirection()}, Speed in rev/sec: {speedLeft}")
         # print(f"Right, Steps: {encoder_right.getSteps()}, Direction: {encoder_right.getDirection()}, Speed in rev/sec: {speedRight}")
-        time.sleep(0.01) 
+        time.sleep(0.01)
 
         speedsLeft.append(speedLeft)
         speedsRight.append(speedRight)
 
     TB1.SetMotor1(0)
-    TB1.SetMotor2(0)    
+    TB1.SetMotor2(0)
 
     if not 1 < sum(speedsLeft[10:]) / len(speedsLeft[10:]) < 1.6:
         raise HardwareFailure("Left encoder is broken for going forward.")
@@ -265,8 +293,9 @@ def test_encoder() -> None:
     else:
         print("Test Success! The right encoder works for going forward!")
 
-
-    input("Hold the robot in the air. It will be moving backward to test the encoders. Press enter when you are ready: ")
+    input(
+        "Hold the robot in the air. It will be moving backward to test the encoders. Press enter when you are ready: "
+    )
     TB1.SetMotor1(-1)
     TB1.SetMotor2(-1)
 
@@ -280,19 +309,19 @@ def test_encoder() -> None:
         stepsLeft = encoder_left.getSteps()
         stepsRight = encoder_right.getSteps()
         speedLeft = ((stepsLeft - prevStepsLeft) / (cTime - prevTime) * 3) / 3591.84
-        speedRight = ((stepsRight - prevStepsRight) / (cTime - prevTime) * 3) / 3591.84 
+        speedRight = ((stepsRight - prevStepsRight) / (cTime - prevTime) * 3) / 3591.84
         prevTime = cTime
         prevStepsLeft = stepsLeft
         prevStepsRight = stepsRight
         # print(f"Left, Steps: {encoder_left.getSteps()}, Direction: {encoder_left.getDirection()}, Speed in rev/sec: {speedLeft}")
         # print(f"Right, Steps: {encoder_right.getSteps()}, Direction: {encoder_right.getDirection()}, Speed in rev/sec: {speedRight}")
-        time.sleep(0.01) 
+        time.sleep(0.01)
 
         speedsLeft.append(speedLeft)
         speedsRight.append(speedRight)
 
     TB1.SetMotor1(0)
-    TB1.SetMotor2(0)    
+    TB1.SetMotor2(0)
 
     if not -1.6 < sum(speedsLeft[10:]) / len(speedsLeft[10:]) < -1:
         raise HardwareFailure("Left encoder is broken for going backward.")
@@ -326,11 +355,15 @@ def test_l298_motors() -> None:
     time.sleep(1)
     GPIO.output(L298N_PINS["FORWARD"], GPIO.LOW)
 
-    if input("Did the vibration motor (connected to the L298N) move forward for 1 second? ").lower() == "no":
+    if (
+        input(
+            "Did the vibration motor (connected to the L298N) move forward for 1 second? "
+        ).lower()
+        == "no"
+    ):
         raise HardwareFailure("Motors Did Not Move Forward!")
     else:
         print("Motors moved forward! Test success!")
-
 
 
 if not sys.argv[1:]:
@@ -363,8 +396,10 @@ else:
             """
         )
 
+
 def cleanup_func():
     GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
     GPIO.cleanup()
+
 
 atexit.register(cleanup_func)

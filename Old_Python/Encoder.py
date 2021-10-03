@@ -31,7 +31,9 @@ class Encoder_quadrature:
     def on_step(self, pinA):
         if GPIO.input(self.pinB) == GPIO.LOW:
             self.steps -= 1
-            print(f"Subtracted Step: {self.steps}, Pin Number: {self.pinA}, {self.pinB}")
+            print(
+                f"Subtracted Step: {self.steps}, Pin Number: {self.pinA}, {self.pinB}"
+            )
         else:
             self.steps += 1
             print(f"Added Step: {self.steps}, Pin Number: {self.pinA}, {self.pinB}")

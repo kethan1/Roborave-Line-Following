@@ -34,50 +34,56 @@ import time
 import os
 
 # Constant values
-I2C_SLAVE                   = 0x0703
-PWM_MAX                     = 255
-I2C_MAX_LEN                 = 6
-VOLTAGE_PIN_MAX             = 36.3  # Maximum voltage from the analog voltage monitoring pin
-VOLTAGE_PIN_CORRECTION      = 0.0   # Correction value for the analog voltage monitoring pin
-BATTERY_MIN_DEFAULT         = 7.0   # Default minimum battery monitoring voltage
-BATTERY_MAX_DEFAULT         = 35.0  # Default maximum battery monitoring voltage
+I2C_SLAVE = 0x0703
+PWM_MAX = 255
+I2C_MAX_LEN = 6
+VOLTAGE_PIN_MAX = 36.3  # Maximum voltage from the analog voltage monitoring pin
+VOLTAGE_PIN_CORRECTION = 0.0  # Correction value for the analog voltage monitoring pin
+BATTERY_MIN_DEFAULT = 7.0  # Default minimum battery monitoring voltage
+BATTERY_MAX_DEFAULT = 35.0  # Default maximum battery monitoring voltage
 
-I2C_ID_THUNDERBORG          = 0x15
+I2C_ID_THUNDERBORG = 0x15
 
-COMMAND_SET_LED1            = 1     # Set the colour of the ThunderBorg LED
-COMMAND_GET_LED1            = 2     # Get the colour of the ThunderBorg LED
-COMMAND_SET_LED2            = 3     # Set the colour of the ThunderBorg Lid LED
-COMMAND_GET_LED2            = 4     # Get the colour of the ThunderBorg Lid LED
-COMMAND_SET_LEDS            = 5     # Set the colour of both the LEDs
-COMMAND_SET_LED_BATT_MON    = 6     # Set the colour of both LEDs to show the current battery level
-COMMAND_GET_LED_BATT_MON    = 7     # Get the state of showing the current battery level via the LEDs
-COMMAND_SET_A_FWD           = 8     # Set motor A PWM rate in a forwards direction
-COMMAND_SET_A_REV           = 9     # Set motor A PWM rate in a reverse direction
-COMMAND_GET_A               = 10    # Get motor A direction and PWM rate
-COMMAND_SET_B_FWD           = 11    # Set motor B PWM rate in a forwards direction
-COMMAND_SET_B_REV           = 12    # Set motor B PWM rate in a reverse direction
-COMMAND_GET_B               = 13    # Get motor B direction and PWM rate
-COMMAND_ALL_OFF             = 14    # Switch everything off
-COMMAND_GET_DRIVE_A_FAULT   = 15    # Get the drive fault flag for motor A, indicates faults such as short-circuits and under voltage
-COMMAND_GET_DRIVE_B_FAULT   = 16    # Get the drive fault flag for motor B, indicates faults such as short-circuits and under voltage
-COMMAND_SET_ALL_FWD         = 17    # Set all motors PWM rate in a forwards direction
-COMMAND_SET_ALL_REV         = 18    # Set all motors PWM rate in a reverse direction
-COMMAND_SET_FAILSAFE        = 19    # Set the failsafe flag, turns the motors off if communication is interrupted
-COMMAND_GET_FAILSAFE        = 20    # Get the failsafe flag
-COMMAND_GET_BATT_VOLT       = 21    # Get the battery voltage reading
-COMMAND_SET_BATT_LIMITS     = 22    # Set the battery monitoring limits
-COMMAND_GET_BATT_LIMITS     = 23    # Get the battery monitoring limits
-COMMAND_WRITE_EXTERNAL_LED  = 24    # Write a 32bit pattern out to SK9822 / APA102C
-COMMAND_GET_ID              = 0x99  # Get the board identifier
-COMMAND_SET_I2C_ADD         = 0xAA  # Set a new I2C address
+COMMAND_SET_LED1 = 1  # Set the colour of the ThunderBorg LED
+COMMAND_GET_LED1 = 2  # Get the colour of the ThunderBorg LED
+COMMAND_SET_LED2 = 3  # Set the colour of the ThunderBorg Lid LED
+COMMAND_GET_LED2 = 4  # Get the colour of the ThunderBorg Lid LED
+COMMAND_SET_LEDS = 5  # Set the colour of both the LEDs
+COMMAND_SET_LED_BATT_MON = (
+    6  # Set the colour of both LEDs to show the current battery level
+)
+COMMAND_GET_LED_BATT_MON = (
+    7  # Get the state of showing the current battery level via the LEDs
+)
+COMMAND_SET_A_FWD = 8  # Set motor A PWM rate in a forwards direction
+COMMAND_SET_A_REV = 9  # Set motor A PWM rate in a reverse direction
+COMMAND_GET_A = 10  # Get motor A direction and PWM rate
+COMMAND_SET_B_FWD = 11  # Set motor B PWM rate in a forwards direction
+COMMAND_SET_B_REV = 12  # Set motor B PWM rate in a reverse direction
+COMMAND_GET_B = 13  # Get motor B direction and PWM rate
+COMMAND_ALL_OFF = 14  # Switch everything off
+COMMAND_GET_DRIVE_A_FAULT = 15  # Get the drive fault flag for motor A, indicates faults such as short-circuits and under voltage
+COMMAND_GET_DRIVE_B_FAULT = 16  # Get the drive fault flag for motor B, indicates faults such as short-circuits and under voltage
+COMMAND_SET_ALL_FWD = 17  # Set all motors PWM rate in a forwards direction
+COMMAND_SET_ALL_REV = 18  # Set all motors PWM rate in a reverse direction
+COMMAND_SET_FAILSAFE = (
+    19  # Set the failsafe flag, turns the motors off if communication is interrupted
+)
+COMMAND_GET_FAILSAFE = 20  # Get the failsafe flag
+COMMAND_GET_BATT_VOLT = 21  # Get the battery voltage reading
+COMMAND_SET_BATT_LIMITS = 22  # Set the battery monitoring limits
+COMMAND_GET_BATT_LIMITS = 23  # Get the battery monitoring limits
+COMMAND_WRITE_EXTERNAL_LED = 24  # Write a 32bit pattern out to SK9822 / APA102C
+COMMAND_GET_ID = 0x99  # Get the board identifier
+COMMAND_SET_I2C_ADD = 0xAA  # Set a new I2C address
 
-COMMAND_VALUE_FWD           = 1     # I2C value representing forward
-COMMAND_VALUE_REV           = 2     # I2C value representing reverse
+COMMAND_VALUE_FWD = 1  # I2C value representing forward
+COMMAND_VALUE_REV = 2  # I2C value representing reverse
 
-COMMAND_VALUE_ON            = 1     # I2C value representing on
-COMMAND_VALUE_OFF           = 0     # I2C value representing off
+COMMAND_VALUE_ON = 1  # I2C value representing on
+COMMAND_VALUE_OFF = 0  # I2C value representing off
 
-COMMAND_ANALOG_MAX          = 0x3FF # Maximum value for analog readings
+COMMAND_ANALOG_MAX = 0x3FF  # Maximum value for analog readings
 
 
 def ScanForThunderBorg(busNumber=1):
@@ -88,7 +94,7 @@ def ScanForThunderBorg(busNumber=1):
     The busNumber if supplied is which I2C bus to scan, 0 for Rev 1 boards, 1 for Rev 2 boards, if not supplied the default is 1
     """
     found = []
-    print('Scanning I2C bus #%d' % (busNumber))
+    print("Scanning I2C bus #%d" % (busNumber))
     bus = ThunderBorg()
     for address in range(0x03, 0x78, 1):
         try:
@@ -96,7 +102,7 @@ def ScanForThunderBorg(busNumber=1):
             i2cRecv = bus.RawRead(COMMAND_GET_ID, I2C_MAX_LEN)
             if len(i2cRecv) == I2C_MAX_LEN:
                 if i2cRecv[1] == I2C_ID_THUNDERBORG:
-                    print('Found ThunderBorg at %02X' % (address))
+                    print("Found ThunderBorg at %02X" % (address))
                     found.append(address)
                 else:
                     pass
@@ -107,15 +113,17 @@ def ScanForThunderBorg(busNumber=1):
         except:
             pass
     if len(found) == 0:
-        print(f'No ThunderBorg boards found, is bus #{busNumber} correct (should be 0 for Rev 1, 1 for Rev 2)')
+        print(
+            f"No ThunderBorg boards found, is bus #{busNumber} correct (should be 0 for Rev 1, 1 for Rev 2)"
+        )
     elif len(found) == 1:
-        print('1 ThunderBorg board found')
+        print("1 ThunderBorg board found")
     else:
-        print('%d ThunderBorg boards found' % (len(found)))
+        print("%d ThunderBorg boards found" % (len(found)))
     return found
 
 
-def SetNewAddress(newAddress, oldAddress = -1, busNumber = 1):
+def SetNewAddress(newAddress, oldAddress=-1, busNumber=1):
     """
     SetNewAddress(newAddress, [oldAddress], [busNumber])
 
@@ -125,19 +133,26 @@ def SetNewAddress(newAddress, oldAddress = -1, busNumber = 1):
     Warning, this new I2C address will still be used after resetting the power on the device
     """
     if newAddress < 0x03:
-        print('Error, I2C addresses below 3 (0x03) are reserved, use an address between 3 (0x03) and 119 (0x77)')
+        print(
+            "Error, I2C addresses below 3 (0x03) are reserved, use an address between 3 (0x03) and 119 (0x77)"
+        )
         return
     elif newAddress > 0x77:
-        print('Error, I2C addresses above 119 (0x77) are reserved, use an address between 3 (0x03) and 119 (0x77)')
+        print(
+            "Error, I2C addresses above 119 (0x77) are reserved, use an address between 3 (0x03) and 119 (0x77)"
+        )
         return
     if oldAddress < 0x0:
         found = ScanForThunderBorg(busNumber)
         if len(found) < 1:
-            print('No ThunderBorg boards found, cannot set a new I2C address!')
+            print("No ThunderBorg boards found, cannot set a new I2C address!")
             return
         else:
             oldAddress = found[0]
-    print('Changing I2C address from %02X to %02X (bus #%d)' % (oldAddress, newAddress, busNumber))
+    print(
+        "Changing I2C address from %02X to %02X (bus #%d)"
+        % (oldAddress, newAddress, busNumber)
+    )
     bus = ThunderBorg()
     bus.InitBusOnly(busNumber, oldAddress)
     try:
@@ -145,44 +160,53 @@ def SetNewAddress(newAddress, oldAddress = -1, busNumber = 1):
         if len(i2cRecv) == I2C_MAX_LEN:
             if i2cRecv[1] == I2C_ID_THUNDERBORG:
                 foundChip = True
-                print('Found ThunderBorg at %02X' % (oldAddress))
+                print("Found ThunderBorg at %02X" % (oldAddress))
             else:
                 foundChip = False
-                print('Found a device at %02X, but it is not a ThunderBorg (ID %02X instead of %02X)' % (oldAddress, i2cRecv[1], I2C_ID_THUNDERBORG))
+                print(
+                    "Found a device at %02X, but it is not a ThunderBorg (ID %02X instead of %02X)"
+                    % (oldAddress, i2cRecv[1], I2C_ID_THUNDERBORG)
+                )
         else:
             foundChip = False
-            print('Missing ThunderBorg at %02X' % (oldAddress))
+            print("Missing ThunderBorg at %02X" % (oldAddress))
     except KeyboardInterrupt:
         raise
     except:
         foundChip = False
-        print('Missing ThunderBorg at %02X' % (oldAddress))
+        print("Missing ThunderBorg at %02X" % (oldAddress))
     if foundChip:
         bus.RawWrite(COMMAND_SET_I2C_ADD, [newAddress])
         time.sleep(0.1)
-        print('Address changed to %02X, attempting to talk with the new address' % (newAddress))
+        print(
+            "Address changed to %02X, attempting to talk with the new address"
+            % (newAddress)
+        )
         try:
             bus.InitBusOnly(busNumber, newAddress)
             i2cRecv = bus.RawRead(COMMAND_GET_ID, I2C_MAX_LEN)
             if len(i2cRecv) == I2C_MAX_LEN:
                 if i2cRecv[1] == I2C_ID_THUNDERBORG:
                     foundChip = True
-                    print('Found ThunderBorg at %02X' % (newAddress))
+                    print("Found ThunderBorg at %02X" % (newAddress))
                 else:
                     foundChip = False
-                    print('Found a device at %02X, but it is not a ThunderBorg (ID %02X instead of %02X)' % (newAddress, i2cRecv[1], I2C_ID_THUNDERBORG))
+                    print(
+                        "Found a device at %02X, but it is not a ThunderBorg (ID %02X instead of %02X)"
+                        % (newAddress, i2cRecv[1], I2C_ID_THUNDERBORG)
+                    )
             else:
                 foundChip = False
-                print('Missing ThunderBorg at %02X' % (newAddress))
+                print("Missing ThunderBorg at %02X" % (newAddress))
         except KeyboardInterrupt:
             raise
         except:
             foundChip = False
-            print('Missing ThunderBorg at %02X' % (newAddress))
+            print("Missing ThunderBorg at %02X" % (newAddress))
     if foundChip:
-        print('New I2C address of %02X set successfully' % (newAddress))
+        print("New I2C address of %02X set successfully" % (newAddress))
     else:
-        print('Failed to set new I2C address...')
+        print("Failed to set new I2C address...")
 
 
 # Class used to control ThunderBorg
@@ -198,12 +222,12 @@ class ThunderBorg:
     """
 
     # Shared values used by this class
-    busNumber     = 1                     # Check here for Rev 1 vs Rev 2 and select the correct bus
-    i2cAddress    = I2C_ID_THUNDERBORG    # I2C address, override for a different address
-    foundChip     = False
+    busNumber = 1  # Check here for Rev 1 vs Rev 2 and select the correct bus
+    i2cAddress = I2C_ID_THUNDERBORG  # I2C address, override for a different address
+    foundChip = False
     printFunction = None
-    i2cWrite      = None
-    i2cRead       = None
+    i2cWrite = None
+    i2cRead = None
 
     def RawWrite(self, command, data):
         """
@@ -219,7 +243,7 @@ class ThunderBorg:
         rawOutput = bytes(rawOutput)
         self.i2cWrite.write(rawOutput)
 
-    def RawRead(self, command, length, retryCount = 3):
+    def RawRead(self, command, length, retryCount=3):
         """
         RawRead(command, length, [retryCount])
 
@@ -244,7 +268,7 @@ class ThunderBorg:
         if retryCount > 0:
             return reply
         else:
-            raise IOError('I2C read for command %d failed' % (command))
+            raise IOError("I2C read for command %d failed" % (command))
 
     def InitBusOnly(self, busNumber, address):
         """
@@ -255,11 +279,10 @@ class ThunderBorg:
         """
         self.busNumber = busNumber
         self.i2cAddress = address
-        self.i2cRead = io.open("/dev/i2c-" + str(self.busNumber), "rb", buffering = 0)
+        self.i2cRead = io.open("/dev/i2c-" + str(self.busNumber), "rb", buffering=0)
         fcntl.ioctl(self.i2cRead, I2C_SLAVE, self.i2cAddress)
-        self.i2cWrite = io.open("/dev/i2c-" + str(self.busNumber), "wb", buffering = 0)
+        self.i2cWrite = io.open("/dev/i2c-" + str(self.busNumber), "wb", buffering=0)
         fcntl.ioctl(self.i2cWrite, I2C_SLAVE, self.i2cAddress)
-
 
     def Print(self, message):
         """
@@ -272,7 +295,6 @@ class ThunderBorg:
         else:
             self.printFunction(message)
 
-
     def NoPrint(self, message):
         """
         NoPrint(message)
@@ -283,8 +305,7 @@ class ThunderBorg:
         """
         pass
 
-
-    def Init(self, tryOtherBus = False):
+    def Init(self, tryOtherBus=False):
         """
         Init([tryOtherBus])
 
@@ -292,15 +313,18 @@ class ThunderBorg:
 
         If tryOtherBus is True, this function will attempt to use the other bus if the
         ThunderBorg devices can not be found on the current busNumber
-        
+
         This is only really useful for early Raspberry Pi models!
         """
-        self.Print('Loading ThunderBorg on bus %d, address %02X' % (self.busNumber, self.i2cAddress))
+        self.Print(
+            "Loading ThunderBorg on bus %d, address %02X"
+            % (self.busNumber, self.i2cAddress)
+        )
 
         # Open the bus
-        self.i2cRead = io.open("/dev/i2c-" + str(self.busNumber), "rb", buffering = 0)
+        self.i2cRead = io.open("/dev/i2c-" + str(self.busNumber), "rb", buffering=0)
         fcntl.ioctl(self.i2cRead, I2C_SLAVE, self.i2cAddress)
-        self.i2cWrite = io.open("/dev/i2c-" + str(self.busNumber), "wb", buffering = 0)
+        self.i2cWrite = io.open("/dev/i2c-" + str(self.busNumber), "wb", buffering=0)
         # self.i2cWrite = os.open("/dev/i2c-" + str(self.busNumber), os.O_WRONLY)
         # os.set_blocking(self.i2cWrite, True)
         fcntl.ioctl(self.i2cWrite, I2C_SLAVE, self.i2cAddress)
@@ -311,35 +335,39 @@ class ThunderBorg:
             if len(i2cRecv) == I2C_MAX_LEN:
                 if i2cRecv[1] == I2C_ID_THUNDERBORG:
                     self.foundChip = True
-                    self.Print('Found ThunderBorg at %02X' % (self.i2cAddress))
+                    self.Print("Found ThunderBorg at %02X" % (self.i2cAddress))
                 else:
                     self.foundChip = False
-                    self.Print('Found a device at %02X, but it is not a ThunderBorg (ID %02X instead of %02X)' % (self.i2cAddress, i2cRecv[1], I2C_ID_THUNDERBORG))
+                    self.Print(
+                        "Found a device at %02X, but it is not a ThunderBorg (ID %02X instead of %02X)"
+                        % (self.i2cAddress, i2cRecv[1], I2C_ID_THUNDERBORG)
+                    )
             else:
                 self.foundChip = False
-                self.Print('Missing ThunderBorg at %02X' % (self.i2cAddress))
+                self.Print("Missing ThunderBorg at %02X" % (self.i2cAddress))
         except KeyboardInterrupt:
             raise
         except:
             self.foundChip = False
-            self.Print('Missing ThunderBorg at %02X' % (self.i2cAddress))
+            self.Print("Missing ThunderBorg at %02X" % (self.i2cAddress))
 
         # See if we are missing chips
         if not self.foundChip:
-            self.Print('ThunderBorg was not found')
+            self.Print("ThunderBorg was not found")
             if tryOtherBus:
                 if self.busNumber == 1:
                     self.busNumber = 0
                 else:
                     self.busNumber = 1
-                self.Print('Trying bus %d instead' % (self.busNumber))
+                self.Print("Trying bus %d instead" % (self.busNumber))
                 self.Init(False)
             else:
-                self.Print('Are you sure your ThunderBorg is properly attached, the correct address is used, and the I2C drivers are running?')
+                self.Print(
+                    "Are you sure your ThunderBorg is properly attached, the correct address is used, and the I2C drivers are running?"
+                )
                 self.bus = None
         else:
-            self.Print('ThunderBorg loaded on bus %d' % (self.busNumber))
-
+            self.Print("ThunderBorg loaded on bus %d" % (self.busNumber))
 
     def SetMotor2(self, power):
         """
@@ -370,8 +398,7 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending motor 2 drive level! Exception:\n{repr(e)}')
-
+            self.Print(f"Failed sending motor 2 drive level! Exception:\n{repr(e)}")
 
     def GetMotor2(self):
         """
@@ -389,7 +416,7 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading motor 2 drive level! Exception:\n{repr(e)}')
+            self.Print(f"Failed reading motor 2 drive level! Exception:\n{repr(e)}")
             return
 
         power = float(i2cRecv[2]) / float(PWM_MAX)
@@ -400,7 +427,6 @@ class ThunderBorg:
             return -power
         else:
             return
-
 
     def SetMotor1(self, power):
         """
@@ -431,8 +457,7 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending motor 1 drive level! Exception:\n{repr(e)}')
-
+            self.Print(f"Failed sending motor 1 drive level! Exception:\n{repr(e)}")
 
     def GetMotor1(self):
         """
@@ -450,7 +475,7 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading motor 1 drive level! Exception:\n{repr(e)}')
+            self.Print(f"Failed reading motor 1 drive level! Exception:\n{repr(e)}")
             return
 
         power = float(i2cRecv[2]) / float(PWM_MAX)
@@ -461,7 +486,6 @@ class ThunderBorg:
             return -power
         else:
             return
-
 
     def SetMotors(self, power):
         """
@@ -492,8 +516,7 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending all motors drive level! Exception:\n{repr(e)}')
-
+            self.Print(f"Failed sending all motors drive level! Exception:\n{repr(e)}")
 
     def MotorsOff(self):
         """
@@ -506,8 +529,7 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending motors off command! Exception:\n{repr(e)}')
-
+            self.Print(f"Failed sending motors off command! Exception:\n{repr(e)}")
 
     def SetLed1(self, r, g, b):
         """
@@ -529,8 +551,9 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending colour for the ThunderBorg LED! Exception:\n{repr(e)}')
-
+            self.Print(
+                f"Failed sending colour for the ThunderBorg LED! Exception:\n{repr(e)}"
+            )
 
     def GetLed1(self):
         """
@@ -548,14 +571,13 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading ThunderBorg LED colour! Exception:\n{repr(e)}')
+            self.Print(f"Failed reading ThunderBorg LED colour! Exception:\n{repr(e)}")
             return
 
         r = i2cRecv[1] / float(PWM_MAX)
         g = i2cRecv[2] / float(PWM_MAX)
         b = i2cRecv[3] / float(PWM_MAX)
         return r, g, b
-
 
     def SetLed2(self, r, g, b):
         """
@@ -577,8 +599,9 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending colour for the ThunderBorg Lid LED! Exception:\n{repr(e)}')
-
+            self.Print(
+                f"Failed sending colour for the ThunderBorg Lid LED! Exception:\n{repr(e)}"
+            )
 
     def GetLed2(self):
         """
@@ -596,14 +619,15 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading ThunderBorg Lid LED colour! Exception:\n{repr(e)}')
+            self.Print(
+                f"Failed reading ThunderBorg Lid LED colour! Exception:\n{repr(e)}"
+            )
             return
 
         r = i2cRecv[1] / float(PWM_MAX)
         g = i2cRecv[2] / float(PWM_MAX)
         b = i2cRecv[3] / float(PWM_MAX)
         return r, g, b
-
 
     def SetLeds(self, r, g, b):
         """
@@ -625,8 +649,7 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending colour for both LEDs! Exception:\n{repr(e)}')
-
+            self.Print(f"Failed sending colour for both LEDs! Exception:\n{repr(e)}")
 
     def SetLedShowBattery(self, state):
         """
@@ -646,8 +669,9 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending LED battery monitoring state! Exception:\n{repr(e)}')
-
+            self.Print(
+                f"Failed sending LED battery monitoring state! Exception:\n{repr(e)}"
+            )
 
     def GetLedShowBattery(self):
         """
@@ -656,20 +680,21 @@ class ThunderBorg:
         Gets if the system is using the LEDs to show the current battery level, true for enabled, false for disabled
         If enabled the LED colours will be ignored and will use the current battery reading instead
         This sweeps from fully green for maximum voltage (35 V) to fully red for minimum voltage (7 V)
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_LED_BATT_MON, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading LED battery monitoring state! Exception:\n{repr(e)}')
+            self.Print(
+                f"Failed reading LED battery monitoring state! Exception:\n{repr(e)}"
+            )
             return
 
         if i2cRecv[1] == COMMAND_VALUE_OFF:
             return False
         else:
             return True
-
 
     def SetCommsFailsafe(self, state):
         """
@@ -690,8 +715,9 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending communications failsafe state! Exception:\n{repr(e)}')
-
+            self.Print(
+                f"Failed sending communications failsafe state! Exception:\n{repr(e)}"
+            )
 
     def GetCommsFailsafe(self):
         """
@@ -699,20 +725,21 @@ class ThunderBorg:
 
         Read the current system state of the communications failsafe, True for enabled, False for disabled
         The failsafe will turn the motors off unless it is commanded at least once every 1/4 of a second
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_FAILSAFE, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading communications failsafe state! Exception:\n{repr(e)}')
+            self.Print(
+                f"Failed reading communications failsafe state! Exception:\n{repr(e)}"
+            )
             return
 
         if i2cRecv[1] == COMMAND_VALUE_OFF:
             return False
         else:
             return True
-
 
     def GetDriveFault1(self):
         """
@@ -732,20 +759,21 @@ class ThunderBorg:
         The easiest way to check is to put both motors at a low power setting which is high enough for them to rotate easily, such as 30%
         Note that the fault state may be true at power up, this is normal and should clear when both motors have been driven
         For more details check the website at www.piborg.org/thunderborg and double check the wiring instructions
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_DRIVE_A_FAULT, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading the drive fault state for motor #1! Exception:\n{repr(e)}')
+            self.Print(
+                f"Failed reading the drive fault state for motor #1! Exception:\n{repr(e)}"
+            )
             return
 
         if i2cRecv[1] == COMMAND_VALUE_OFF:
             return False
         else:
             return True
-
 
     def GetDriveFault2(self):
         """
@@ -765,13 +793,15 @@ class ThunderBorg:
         The easiest way to check is to put both motors at a low power setting which is high enough for them to rotate easily, such as 30%
         Note that the fault state may be true at power up, this is normal and should clear when both motors have been driven
         For more details check the website at www.piborg.org/thunderborg and double check the wiring instructions
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_DRIVE_B_FAULT, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading the drive fault state for motor #2! Exception:\n{repr(e)}')
+            self.Print(
+                f"Failed reading the drive fault state for motor #2! Exception:\n{repr(e)}"
+            )
             return
 
         if i2cRecv[1] == COMMAND_VALUE_OFF:
@@ -779,27 +809,25 @@ class ThunderBorg:
         else:
             return True
 
-
     def GetBatteryReading(self):
         """
         voltage = GetBatteryReading()
 
         Reads the current battery level from the main input.
         Returns the value as a voltage based on the 3.3 V rail as a reference.
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_BATT_VOLT, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading battery level! Exception:\n{repr(e)}')
+            self.Print(f"Failed reading battery level! Exception:\n{repr(e)}")
             return
 
         raw = (i2cRecv[1] << 8) + i2cRecv[2]
         level = float(raw) / float(COMMAND_ANALOG_MAX)
         level *= VOLTAGE_PIN_MAX
         return level + VOLTAGE_PIN_CORRECTION
-
 
     def SetBatteryMonitoringLimits(self, minimum, maximum):
         """
@@ -817,12 +845,13 @@ class ThunderBorg:
 
         try:
             self.RawWrite(COMMAND_SET_BATT_LIMITS, [levelMin, levelMax])
-            time.sleep(0.2) # Wait for EEPROM write to complete
+            time.sleep(0.2)  # Wait for EEPROM write to complete
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending battery monitoring limits! Exception:\n{repr(e)}')
-
+            self.Print(
+                f"Failed sending battery monitoring limits! Exception:\n{repr(e)}"
+            )
 
     def GetBatteryMonitoringLimits(self):
         """
@@ -831,13 +860,15 @@ class ThunderBorg:
         Reads the current battery monitoring limits used for setting the LED colour.
         The values are between 0 and 36.3 V.
         The colours shown range from full red at minimum or below, yellow half way, and full green at maximum or higher.
-        """ 
+        """
         try:
             i2cRecv = self.RawRead(COMMAND_GET_BATT_LIMITS, I2C_MAX_LEN)
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed reading battery monitoring limits! Exception:\n{repr(e)}')
+            self.Print(
+                f"Failed reading battery monitoring limits! Exception:\n{repr(e)}"
+            )
             return
 
         rawMin = i2cRecv[1]
@@ -847,7 +878,6 @@ class ThunderBorg:
         levelMin *= VOLTAGE_PIN_MAX
         levelMax *= VOLTAGE_PIN_MAX
         return levelMin, levelMax
-
 
     def WriteExternalLedWord(self, b0, b1, b2, b3):
         """
@@ -871,8 +901,9 @@ class ThunderBorg:
         except KeyboardInterrupt:
             raise
         except Exception as e:
-            self.Print(f'Failed sending word for the external LEDs! Exception:\n{repr(e)}')
-
+            self.Print(
+                f"Failed sending word for the external LEDs! Exception:\n{repr(e)}"
+            )
 
     def SetExternalLedColours(self, colours):
         """
@@ -893,17 +924,26 @@ class ThunderBorg:
         for r, g, b in colours:
             self.WriteExternalLedWord(255, 255 * b, 255 * g, 255 * r)
 
-
     def Help(self):
         """
         Help()
 
         Displays the names and descriptions of the various functions and settings provided
         """
-        funcList = [ThunderBorg.__dict__.get(a) for a in dir(ThunderBorg) if isinstance(ThunderBorg.__dict__.get(a), types.FunctionType)]
-        funcListSorted = sorted(funcList, key = lambda x: x.__name__)
+        funcList = [
+            ThunderBorg.__dict__.get(a)
+            for a in dir(ThunderBorg)
+            if isinstance(ThunderBorg.__dict__.get(a), types.FunctionType)
+        ]
+        funcListSorted = sorted(funcList, key=lambda x: x.__name__)
 
         print(self.__doc__)
         print()
         for func in funcListSorted:
-            print('==== %s ==== %s' % (func.__name__, '\n'.join([line.strip() for line in func.__doc__.split("\n")])))
+            print(
+                "==== %s ==== %s"
+                % (
+                    func.__name__,
+                    "\n".join([line.strip() for line in func.__doc__.split("\n")]),
+                )
+            )

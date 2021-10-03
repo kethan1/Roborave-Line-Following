@@ -3,9 +3,7 @@
 from setuptools import setup, Extension
 
 encoder_module = Extension(
-    "_encoder",
-    sources=["encoder_wrap.cxx", "Encoder.cpp"],
-    libraries=["pigpio"]
+    "_encoder", sources=["encoder_wrap.cxx", "Encoder.cpp"], libraries=["pigpio"]
 )
 
 setup(
@@ -13,5 +11,5 @@ setup(
     author="Kethan Vegunta",
     description="An encoder module written in C++.",
     ext_modules=[encoder_module],
-    py_modules=["encoder"]
+    py_modules=["encoder"],
 )
