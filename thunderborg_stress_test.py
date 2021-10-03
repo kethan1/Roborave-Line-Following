@@ -57,6 +57,10 @@ try:
         else:
             motor_right -= 0.41
             motor_left -= 0.41
+        if loop == 1000:
+            motor_right = -motor_right
+            motor_left = -motor_left
+            loop = 0
         # print(TB.GetBatteryReading(), end='\r')
 except KeyboardInterrupt:
     pass

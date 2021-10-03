@@ -29,10 +29,16 @@ TB.SetBatteryMonitoringLimits(11, 13)
 
 try:
     while True:
-        # print(TB.GetBatteryReading(), end='\r')
-        TB.GetBatteryReading()
+        # TB.SetMotors(1)
+        TB.SetMotor1(1)
+        TB.SetMotor2(1)
+        # time.sleep(0.01)
+        # TB.SetMotor2(0.9)
+        print(TB.GetBatteryReading(), end='\r')
+        # TB.GetBatteryReading()
         # battery_reading = TB.GetBatteryReading()
         # if battery_reading is not None:
         #     print(battery_reading)
 except KeyboardInterrupt:
     print(TB.GetBatteryReading())
+    TB.MotorsOff()

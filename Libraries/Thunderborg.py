@@ -31,6 +31,7 @@ import io
 import fcntl
 import types
 import time
+import os
 
 # Constant values
 I2C_SLAVE                   = 0x0703
@@ -300,6 +301,8 @@ class ThunderBorg:
         self.i2cRead = io.open("/dev/i2c-" + str(self.busNumber), "rb", buffering = 0)
         fcntl.ioctl(self.i2cRead, I2C_SLAVE, self.i2cAddress)
         self.i2cWrite = io.open("/dev/i2c-" + str(self.busNumber), "wb", buffering = 0)
+        # self.i2cWrite = os.open("/dev/i2c-" + str(self.busNumber), os.O_WRONLY)
+        # os.set_blocking(self.i2cWrite, True)
         fcntl.ioctl(self.i2cWrite, I2C_SLAVE, self.i2cAddress)
 
         # Check for ThunderBorg

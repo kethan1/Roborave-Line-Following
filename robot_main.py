@@ -171,6 +171,7 @@ def set_speed():
                     math.copysign(0.15, speed_right)
 
         TB.SetMotor1(speed_left)
+        time.sleep(0.01)
         TB.SetMotor2(speed_right)
         time.sleep(0.01)
 
@@ -368,15 +369,23 @@ with picamera.PiCamera() as camera:
                     speed_separate = []
 
                 if GPIO.event_detected(STOP_SWITCH):
-                    print("STOP SWITCH ON")
-                    towerFound = False
-                    targetSpeed = 0
-                    speed_separate = [-1.2, 1.2]
-                    time.sleep(0.8)
-                    speed_separate = []
-                    show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
-                    intersection_turns.reverse()
-                    time.sleep(10)
+                    if GPIO.input(STOP_SWITCH) == GPIO.HIGH:
+                        print("STOP SWITCH ON")
+                        towerFound = False
+                        targetSpeed = 0
+                        speed_separate = [-1.2, 1.2]
+                        time.sleep(0.8)
+                        speed_separate = []
+                        show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
+                        intersection_turns.reverse()
+                        time.sleep(10)
+
+                        wait = GPIO.wait_for_edge(STOP_SWITCH, GPIO.BOTH)
+
+                        if wait is None:
+                            print("Timeout for stop switch was trigged")
+                        else:
+                            pass
         except KeyboardInterrupt:
             end_program()
 
