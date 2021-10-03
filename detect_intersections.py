@@ -39,11 +39,14 @@ images_correct = {
 }
 
 for image_path in os.listdir("images/intersection_images"):
-    image1 = cv2.imread(f"images/intersection_images/{image_path}", cv2.IMREAD_GRAYSCALE)
+    image1 = cv2.imread(
+        f"images/intersection_images/{image_path}", cv2.IMREAD_GRAYSCALE
+    )
 
     image1 = cv2.resize(
-        image1, dsize=(int(image1.shape[0] * 0.2), int(image1.shape[1] * 0.2)),
-        interpolation=cv2.INTER_CUBIC
+        image1,
+        dsize=(int(image1.shape[0] * 0.2), int(image1.shape[1] * 0.2)),
+        interpolation=cv2.INTER_CUBIC,
     )
 
     image_summed = np.sum(image1, 1)
@@ -54,7 +57,7 @@ for image_path in os.listdir("images/intersection_images"):
     # really detecting intersections, it's for detecting turns that are too
     # sharp for the line following. 7 and 15 are too sharp for the line
     # following, so this is fine.
-    if (img_width * 1/3) <= max_pixels:
+    if (img_width * 1 / 3) <= max_pixels:
         print(f"Intersection spotted {image_path}")
         print(max_pixels)
         if image_path in images_correct:
@@ -65,13 +68,7 @@ for image_path in os.listdir("images/intersection_images"):
 # Live Video Testing
 
 file_number = max(
-    map(
-        int,
-        [
-            file.split(".")[0]
-            for file in os.listdir("images/intersection_images")
-        ]
-    )
+    map(int, [file.split(".")[0] for file in os.listdir("images/intersection_images")])
 )
 
 with picamera.PiCamera() as camera:
@@ -90,14 +87,15 @@ with picamera.PiCamera() as camera:
 
                 _, grayscale_image = cv2.threshold(
                     cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
-                    70, 255, cv2.THRESH_BINARY_INV
+                    70,
+                    255,
+                    cv2.THRESH_BINARY_INV,
                 )
 
                 grayscale_image_resized = cv2.resize(
-                    grayscale_image, dsize=(
-                        int(image.shape[1] * 0.2), int(image.shape[0] * 0.2)
-                    ),
-                    interpolation=cv2.INTER_CUBIC
+                    grayscale_image,
+                    dsize=(int(image.shape[1] * 0.2), int(image.shape[0] * 0.2)),
+                    interpolation=cv2.INTER_CUBIC,
                 )
 
                 image_summed = np.sum(grayscale_image_resized, 1)
@@ -110,12 +108,11 @@ with picamera.PiCamera() as camera:
 
                 keypressed = cv2.waitKey(1)
 
-                if keypressed & 0xFF == ord('q'):
+                if keypressed & 0xFF == ord("q"):
                     break
-                elif keypressed & 0xFF == ord('s'):
+                elif keypressed & 0xFF == ord("s"):
                     cv2.imwrite(
-                        f"images/intersection_images/{file_number}.jpg",
-                        grayscale_image
+                        f"images/intersection_images/{file_number}.jpg", grayscale_image
                     )
                     file_number += 1
 

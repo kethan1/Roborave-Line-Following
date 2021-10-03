@@ -19,7 +19,9 @@ try:
         speed = (steps - prevSteps) / (cTime - prevTime) * 3
         prevTime = cTime
         prevSteps = steps
-        print(f"Steps: {encoder1.getSteps()}, Direction: {encoder1.getDirection()}, Speed in rev/sec: {speed / 3591.84}")
+        print(
+            f"Steps: {encoder1.getSteps()}, Direction: {encoder1.getDirection()}, Speed in rev/sec: {speed / 3591.84}"
+        )
         time.sleep(1)
 except KeyboardInterrupt:
     pass

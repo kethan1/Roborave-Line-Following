@@ -13,5 +13,5 @@ setup(
     author="Kethan Vegunta",
     description="PID class in C++.",
     ext_modules=[encoder_module],
-    py_modules=["PID"]
+    py_modules=["PID"],
 )

@@ -16,7 +16,7 @@ expected_behavior = {
     5: "left backward",
     26: "left forward",
     13: "right forward",
-    6: "right backward"
+    6: "right backward",
 }
 
 GPIO.setup(pins + EN_PINs, GPIO.OUT)

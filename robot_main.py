@@ -22,8 +22,10 @@ from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encode
 
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-TB.i2cAddress = 0x15            # Uncomment and change the value if you have changed the board address
-TB.Init()                       # Set the board up (checks the board is connected)
+TB.i2cAddress = (
+    0x15  # Uncomment and change the value if you have changed the board address
+)
+TB.Init()  # Set the board up (checks the board is connected)
 
 # TB2 = ThunderBorg.ThunderBorg()
 # TB2.i2cAddress = 0x15
@@ -38,7 +40,9 @@ if not TB.foundChip:
         print(f"No ThunderBorg at address {TB.i2cAddress}, but we did find boards:")
         for board in boards:
             print("    %02X (%d)" % (board, board))
-        print("If you need to change the I²C address change the setup line so it is correct, e.g.")
+        print(
+            "If you need to change the I²C address change the setup line so it is correct, e.g."
+        )
         print("TB.i2cAddress = 0x%02X" % (boards[0]))
     sys.exit()
 
@@ -111,14 +115,21 @@ finish, targetSpeed, towerFound = False, 0, False
 speed_separate = []
 intersection_turns = [RIGHT, LEFT, LEFT] * 10
 intersection_turns_index = 0
-rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug,
-                     file="rev_per_second.csv")
-maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P, I=MAINTAIN_SPEED_I,
-                              D=MAINTAIN_SPEED_D,
-                              file="maintain_speed_left.csv")
-maintain_speed_PID_right = PID(P=MAINTAIN_SPEED_P, I=MAINTAIN_SPEED_I,
-                               D=MAINTAIN_SPEED_D,
-                               file="maintain_speed_right.csv")
+rev_per_second = PID(
+    P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv"
+)
+maintain_speed_PID_left = PID(
+    P=MAINTAIN_SPEED_P,
+    I=MAINTAIN_SPEED_I,
+    D=MAINTAIN_SPEED_D,
+    file="maintain_speed_left.csv",
+)
+maintain_speed_PID_right = PID(
+    P=MAINTAIN_SPEED_P,
+    I=MAINTAIN_SPEED_I,
+    D=MAINTAIN_SPEED_D,
+    file="maintain_speed_right.csv",
+)
 
 
 def imshow_debug(image_to_show, title):
@@ -138,26 +149,35 @@ def set_speed():
     # To get the speed from the encoders, we can track the numbers of steps
     # between now and a previous time
     while not finish:
-        cTime, stepsLeft, stepsRight = time.time(), encoder_left.getSteps(), \
-            encoder_right.getSteps()
+        cTime, stepsLeft, stepsRight = (
+            time.time(),
+            encoder_left.getSteps(),
+            encoder_right.getSteps(),
+        )
 
-        current_speed_left = \
+        current_speed_left = (
             ((stepsLeft - prevStepsLeft) / 3591.84) / (cTime - prevTime) * 3
-        current_speed_right = \
+        )
+        current_speed_right = (
             ((stepsRight - prevStepsRight) / 3591.84) / (cTime - prevTime) * 3
+        )
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
         with lock:
             if speed_separate:
-                speed_left = maintain_speed_PID_left.update(speed_separate[0],
-                                                            current_speed_left)
-                speed_right = maintain_speed_PID_right.update(speed_separate[1],
-                                                            current_speed_right)
+                speed_left = maintain_speed_PID_left.update(
+                    speed_separate[0], current_speed_left
+                )
+                speed_right = maintain_speed_PID_right.update(
+                    speed_separate[1], current_speed_right
+                )
             elif targetSpeed != 0:
                 speed_left = maintain_speed_PID_left.update(
-                    BASE_SPEED - targetSpeed, current_speed_left)
+                    BASE_SPEED - targetSpeed, current_speed_left
+                )
                 speed_right = maintain_speed_PID_right.update(
-                    BASE_SPEED + targetSpeed, current_speed_right)
+                    BASE_SPEED + targetSpeed, current_speed_right
+                )
             else:
                 speed_left = speed_right = 0
 
@@ -165,10 +185,16 @@ def set_speed():
         # power level to 0.15 if it is lower than that.
         with lock:
             if speed_separate or targetSpeed != 0:
-                speed_left = speed_left if abs(speed_left) > 0.15 else \
-                    math.copysign(0.15, speed_left)
-                speed_right = speed_right if abs(speed_right) > 0.15 else \
-                    math.copysign(0.15, speed_right)
+                speed_left = (
+                    speed_left
+                    if abs(speed_left) > 0.15
+                    else math.copysign(0.15, speed_left)
+                )
+                speed_right = (
+                    speed_right
+                    if abs(speed_right) > 0.15
+                    else math.copysign(0.15, speed_right)
+                )
 
         TB.SetMotor1(speed_left)
         time.sleep(0.01)
@@ -223,41 +249,45 @@ with picamera.PiCamera() as camera:
 
                 _, grayscale_image = cv2.threshold(
                     cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
-                    GRAYSCALE_THRESHOLD, 255, cv2.THRESH_BINARY_INV
+                    GRAYSCALE_THRESHOLD,
+                    255,
+                    cv2.THRESH_BINARY_INV,
                 )
 
                 height, width = grayscale_image.shape
 
                 if CROPPING["do"]:
                     cv2.rectangle(
-                        grayscale_image, (0, 0),
-                        (CROPPING["left"] * width, height)
+                        grayscale_image, (0, 0), (CROPPING["left"] * width, height)
                     )
                     cv2.rectangle(
                         grayscale_image,
                         (width - (CROPPING["right"] * width), 0),
-                        (height, width)
+                        (height, width),
                     )
                     cv2.rectangle(
-                        grayscale_image, (0, 0),
-                        (width, CROPPING["top"] * height)
+                        grayscale_image, (0, 0), (width, CROPPING["top"] * height)
                     )
 
                 grayscale_image_resized = cv2.resize(
-                    grayscale_image, dsize=(
-                        int(image.shape[1] * 0.4), int(image.shape[0] * 0.4)
-                    ),
-                    interpolation=cv2.INTER_AREA
+                    grayscale_image,
+                    dsize=(int(image.shape[1] * 0.4), int(image.shape[0] * 0.4)),
+                    interpolation=cv2.INTER_AREA,
                 )
 
                 pixels_sum = np.sum(grayscale_image_resized, 1)
                 max_pixels_pos = np.argmax(pixels_sum)
                 max_pixels = pixels_sum[max_pixels_pos] / 255
 
-                if grayscale_image_resized.shape[1] * INTERSECTION_PORTION <= max_pixels:
+                if (
+                    grayscale_image_resized.shape[1] * INTERSECTION_PORTION
+                    <= max_pixels
+                ):
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["yellow"])
                     print("Intersection spotted")
-                    print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
+                    print(
+                        f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}"
+                    )
 
                     print("Going through the intersection")
 
@@ -266,7 +296,10 @@ with picamera.PiCamera() as camera:
                     # the start of the robot"s camera is at the intersection,
                     # and then move a certain amount forward so that the
                     # center of mass of the robot is over the intersection
-                    time.sleep((0.00162 * (grayscale_image_resized.shape[0] - max_pixels_pos)) + 0.1)
+                    time.sleep(
+                        (0.00162 * (grayscale_image_resized.shape[0] - max_pixels_pos))
+                        + 0.1
+                    )
 
                     if not towerFound:
                         if intersection_turns[intersection_turns_index] == RIGHT:
@@ -299,11 +332,13 @@ with picamera.PiCamera() as camera:
 
                 line_found = False
                 for current_y in range(height, 0, -20):
-                    cropped_image = grayscale_image[current_y: current_y + 20, 0: -1]
-                    if np.sum(cropped_image) > 20*255 and current_y + 20 < height:
+                    cropped_image = grayscale_image[current_y : current_y + 20, 0:-1]
+                    if np.sum(cropped_image) > 20 * 255 and current_y + 20 < height:
                         line_found = True
-                        center_of_mass_y, center_of_mass_x = \
-                            scipy.ndimage.center_of_mass(cropped_image)
+                        (
+                            center_of_mass_y,
+                            center_of_mass_x,
+                        ) = scipy.ndimage.center_of_mass(cropped_image)
                         break
 
                 # Criterea for line lost
@@ -322,29 +357,41 @@ with picamera.PiCamera() as camera:
                 else:
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["green"])
 
-                targetSpeed_tmp = rev_per_second.update(width/2, center_of_mass_x)
+                targetSpeed_tmp = rev_per_second.update(width / 2, center_of_mass_x)
                 with lock:
-                    targetSpeed = targetSpeed_tmp if abs(targetSpeed_tmp) <= 1.4 \
+                    targetSpeed = (
+                        targetSpeed_tmp
+                        if abs(targetSpeed_tmp) <= 1.4
                         else math.copysign(1.4, targetSpeed_tmp)
+                    )
 
                 if not bl_wh:
                     imshow_debug(
                         "Video Stream with Circle",
-                        cv2.circle(image, (
+                        cv2.circle(
+                            image,
+                            (
                                 round(center_of_mass_x),
-                                current_y + round(center_of_mass_y)
+                                current_y + round(center_of_mass_y),
                             ),
-                            10, (0, 0, 255), 10
-                        )
+                            10,
+                            (0, 0, 255),
+                            10,
+                        ),
                     )
                 else:
-                    imshow_debug("Video Stream with Circle", cv2.circle(
+                    imshow_debug(
+                        "Video Stream with Circle",
+                        cv2.circle(
                             cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR),
                             (
                                 round(center_of_mass_x),
-                                current_y + round(center_of_mass_y)
-                            ), 10, (0, 0, 255), 10
-                        )
+                                current_y + round(center_of_mass_y),
+                            ),
+                            10,
+                            (0, 0, 255),
+                            10,
+                        ),
                     )
 
                 stream.seek(0)

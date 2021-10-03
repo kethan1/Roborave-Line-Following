@@ -19,19 +19,23 @@ from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize
 
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-TB.i2cAddress = 0x15              # Uncomment and change the value if you have changed the board address
-TB.Init()                       # Set the board up (checks the board is connected)
+TB.i2cAddress = (
+    0x15  # Uncomment and change the value if you have changed the board address
+)
+TB.Init()  # Set the board up (checks the board is connected)
 
 if not TB.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
     if len(boards) == 0:
-        print('No ThunderBorg found, check you are attached :)')
+        print("No ThunderBorg found, check you are attached :)")
     else:
-        print(f'No ThunderBorg at address {TB.i2cAddress}, but we did find boards:')
+        print(f"No ThunderBorg at address {TB.i2cAddress}, but we did find boards:")
         for board in boards:
-            print('    %02X (%d)' % (board, board))
-        print('If you need to change the I²C address change the setup line so it is correct, e.g.')
-        print('TB.i2cAddress = 0x%02X' % (boards[0]))
+            print("    %02X (%d)" % (board, board))
+        print(
+            "If you need to change the I²C address change the setup line so it is correct, e.g."
+        )
+        print("TB.i2cAddress = 0x%02X" % (boards[0]))
     sys.exit()
 
 TB.SetBatteryMonitoringLimits(10, 13)  # Set LED Battery Indicator
@@ -77,9 +81,21 @@ GPIO.output(pinlistOut, 0)
 
 
 image, finish, targetSpeed, sameSpeed = None, False, 0, False
-rev_per_second = PID(P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv")
-maintain_speed_PID_left = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_left.csv")
-maintain_speed_PID_right = PID(P=MAINTAIN_SPEED_P_VALUE, I=MAINTAIN_SPEED_I_VALUE, D=MAINTAIN_SPEED_D_VALUE, file="maintain_speed_right.csv")
+rev_per_second = PID(
+    P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv"
+)
+maintain_speed_PID_left = PID(
+    P=MAINTAIN_SPEED_P_VALUE,
+    I=MAINTAIN_SPEED_I_VALUE,
+    D=MAINTAIN_SPEED_D_VALUE,
+    file="maintain_speed_left.csv",
+)
+maintain_speed_PID_right = PID(
+    P=MAINTAIN_SPEED_P_VALUE,
+    I=MAINTAIN_SPEED_I_VALUE,
+    D=MAINTAIN_SPEED_D_VALUE,
+    file="maintain_speed_right.csv",
+)
 
 
 def imshow_debug(image_to_show, title):
@@ -92,22 +108,36 @@ def set_speed():
     prevStepsLeft = prevStepsRight = prevTime = 0
 
     while not finish:
-        cTime, stepsLeft, stepsRight = time.time(), encoder_left.getSteps(), encoder_right.getSteps()
+        cTime, stepsLeft, stepsRight = (
+            time.time(),
+            encoder_left.getSteps(),
+            encoder_right.getSteps(),
+        )
 
-        current_speed_left = \
+        current_speed_left = (
             ((stepsLeft - prevStepsLeft) / 3591.84) / (cTime - prevTime) * 3
-        current_speed_right = \
+        )
+        current_speed_right = (
             ((stepsRight - prevStepsRight) / 3591.84) / (cTime - prevTime) * 3
+        )
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
         if not sameSpeed:
-            speed_left = maintain_speed_PID_left.update(BASE_SPEED - targetSpeed, current_speed_left)
-            speed_right = maintain_speed_PID_right.update(BASE_SPEED + targetSpeed, current_speed_right)
+            speed_left = maintain_speed_PID_left.update(
+                BASE_SPEED - targetSpeed, current_speed_left
+            )
+            speed_right = maintain_speed_PID_right.update(
+                BASE_SPEED + targetSpeed, current_speed_right
+            )
         else:
             speed_left = maintain_speed_PID_left.update(targetSpeed, current_speed_left)
-            speed_right = maintain_speed_PID_right.update(targetSpeed, current_speed_right)
+            speed_right = maintain_speed_PID_right.update(
+                targetSpeed, current_speed_right
+            )
 
-        print(f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}")
+        print(
+            f"Speed Left: {speed_left}, Speed Right: {speed_right}, targetSpeed: {targetSpeed}, current_speed_left: {current_speed_left}, current_speed_right: {current_speed_right}"
+        )
 
         # If the motors drop too low, they won't move. This brings up the
         # power level to 0.15 if it is lower than that.
@@ -169,14 +199,15 @@ with picamera.PiCamera() as camera:
 
                 _, grayscale_image = cv2.threshold(
                     cv2.cvtColor(image, cv2.COLOR_BGR2GRAY),
-                    GRAYSCALE_THRESHOLD, 255, cv2.THRESH_BINARY_INV
+                    GRAYSCALE_THRESHOLD,
+                    255,
+                    cv2.THRESH_BINARY_INV,
                 )
 
                 grayscale_image_resized = cv2.resize(
-                    grayscale_image, dsize=(
-                        int(image.shape[1] * 0.2), int(image.shape[0] * 0.2)
-                    ),
-                    interpolation=cv2.INTER_CUBIC
+                    grayscale_image,
+                    dsize=(int(image.shape[1] * 0.2), int(image.shape[0] * 0.2)),
+                    interpolation=cv2.INTER_CUBIC,
                 )
 
                 pixels_sum = np.sum(grayscale_image_resized, 1)
@@ -184,11 +215,15 @@ with picamera.PiCamera() as camera:
                 max_pixels = pixels_sum[max_pixels_pos] / 255
                 if (grayscale_image_resized.shape[1] * 0.4) <= max_pixels:
                     print("Intersection spotted")
-                    print(f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}")
+                    print(
+                        f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}"
+                    )
 
                     sameSpeed = True
                     targetSpeed = 1.35
-                    time.sleep(abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.01)
+                    time.sleep(
+                        abs(grayscale_image_resized.shape[0] - max_pixels_pos) * 0.01
+                    )
                     targetSpeed = 0
                     # end_program()
 

@@ -21,8 +21,8 @@ theTime = []
 PIDInput = []
 
 start = True
-with open(filename, 'r') as csvfile:
-    plots = csv.reader(csvfile, delimiter=',')
+with open(filename, "r") as csvfile:
+    plots = csv.reader(csvfile, delimiter=",")
     for index, row in enumerate(plots):
         if not start:
             Equation.append(float(row[0]))
@@ -39,17 +39,17 @@ with open(filename, 'r') as csvfile:
         else:
             start = False
 
-plt.plot(theTime, Equation, label='Equation')
-plt.plot(theTime, I_Accumulator, label='I Accumulator')
+plt.plot(theTime, Equation, label="Equation")
+plt.plot(theTime, I_Accumulator, label="I Accumulator")
 # plt.plot(theTime, Prev_Error, label='Previous Error')
-plt.plot(theTime, P_With_Error, label='P With Error')
-plt.plot(theTime, I_With_I_Accumulator, label='I With I Accumulator')
-plt.plot(theTime, D_With_Prev_Error, label='D With Prev Error')
-plt.plot(theTime, setpoint, label='Setpoint')
-plt.plot(theTime, Error, label='Error')
-plt.plot(theTime, PIDInput, "-o", label='Input')
-plt.xlabel('Time in Seconds')
-plt.ylabel('Values')
-plt.title('Robot PID')
+plt.plot(theTime, P_With_Error, label="P With Error")
+plt.plot(theTime, I_With_I_Accumulator, label="I With I Accumulator")
+plt.plot(theTime, D_With_Prev_Error, label="D With Prev Error")
+plt.plot(theTime, setpoint, label="Setpoint")
+plt.plot(theTime, Error, label="Error")
+plt.plot(theTime, PIDInput, "-o", label="Input")
+plt.xlabel("Time in Seconds")
+plt.ylabel("Values")
+plt.title("Robot PID")
 plt.legend()
 plt.show()
