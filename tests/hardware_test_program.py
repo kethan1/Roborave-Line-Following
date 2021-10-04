@@ -27,17 +27,10 @@ from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encode
 
 
 TB1 = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-TB1.i2cAddress = (
-    10  # Uncomment and change the value if you have changed the board address
-)
 TB1.Init()  # Set the board up (checks the board is connected)
 
-TB2 = ThunderBorg.ThunderBorg()
-TB2.i2cAddress = 0x15
-TB2.Init()
-
 # Thunderborg Checks
-if not TB1.foundChip or not TB2.foundChip:
+if not TB1.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
     if len(boards) == 0:
         print("No ThunderBorg found, check you are attached :)")
@@ -49,7 +42,7 @@ if not TB1.foundChip or not TB2.foundChip:
             "If you need to change the I²C address change the setup line so it is correct, e.g."
         )
         print("TB1.i2cAddress = 0x%02X" % (boards[0]))
-    # sys.exit()
+    sys.exit()
 
 initialize_encoder()
 
@@ -373,7 +366,7 @@ if not sys.argv[1:]:
     test_intersection()
     test_encoder()
     test_leds()
-    test_l298_motors()
+    # test_l298_motors()
 else:
     if "--motors" in sys.argv[1]:
         test_motors()

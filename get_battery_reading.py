@@ -9,9 +9,6 @@ import sys
 import time
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-TB.i2cAddress = (
-    0x15  # Uncomment and change the value if you have changed the board address
-)
 TB.Init()  # Set the board up (checks the board is connected)
 if not TB.foundChip:
     boards = ThunderBorg.ScanForThunderBorg()
@@ -37,14 +34,10 @@ try:
     while True:
         # TB.SetMotors(1)
         TB.SetMotor1(1)
+        time.sleep(0.001)
         TB.SetMotor2(1)
-        # time.sleep(0.01)
-        # TB.SetMotor2(0.9)
+        time.sleep(0.001)
         print(TB.GetBatteryReading(), end="\r")
-        # TB.GetBatteryReading()
-        # battery_reading = TB.GetBatteryReading()
-        # if battery_reading is not None:
-        #     print(battery_reading)
 except KeyboardInterrupt:
     print(TB.GetBatteryReading())
     TB.MotorsOff()

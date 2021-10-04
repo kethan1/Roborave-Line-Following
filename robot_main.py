@@ -22,14 +22,7 @@ from CPP_Libraries.Encoder_CPP.encoder import Encoder, init as initialize_encode
 
 
 TB = ThunderBorg.ThunderBorg()  # Create a new ThunderBorg object
-TB.i2cAddress = (
-    0x15  # Uncomment and change the value if you have changed the board address
-)
 TB.Init()  # Set the board up (checks the board is connected)
-
-# TB2 = ThunderBorg.ThunderBorg()
-# TB2.i2cAddress = 0x15
-# TB2.Init()
 
 # Thunderborg Checks
 if not TB.foundChip:
@@ -197,9 +190,9 @@ def set_speed():
                 )
 
         TB.SetMotor1(speed_left)
-        time.sleep(0.01)
+        # time.sleep(0.01)
         TB.SetMotor2(speed_right)
-        time.sleep(0.01)
+        time.sleep(0.005)
 
     maintain_speed_PID_left.close()
     maintain_speed_PID_right.close()
