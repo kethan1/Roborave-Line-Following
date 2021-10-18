@@ -39,6 +39,6 @@ jobs:
           git config --global user.email "kethan@vegunta.com"
           git config --global user.name "Kethan Vegunta"
           git add .
-          git commit -m "ran black github action"
+          git commit -m "ran black github action" || true
           git push origin main
           git push origin black_branch --force
