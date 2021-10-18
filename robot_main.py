@@ -190,7 +190,6 @@ def set_speed():
                 )
 
         TB.SetMotor1(speed_left)
-        # time.sleep(0.01)
         TB.SetMotor2(speed_right)
         time.sleep(0.005)
 
@@ -249,24 +248,23 @@ with picamera.PiCamera() as camera:
 
                 height, width = grayscale_image.shape
 
-                if CROPPING["do"]:
-                    cv2.rectangle(
-                        grayscale_image, (0, 0), (CROPPING["left"] * width, height)
-                    )
-                    cv2.rectangle(
-                        grayscale_image,
-                        (width - (CROPPING["right"] * width), 0),
-                        (height, width),
-                    )
-                    cv2.rectangle(
-                        grayscale_image, (0, 0), (width, CROPPING["top"] * height)
-                    )
-
                 grayscale_image_resized = cv2.resize(
                     grayscale_image,
                     dsize=(int(image.shape[1] * 0.4), int(image.shape[0] * 0.4)),
                     interpolation=cv2.INTER_AREA,
                 )
+
+                if CROPPING["do"]:
+                    cv2.rectangle(
+                        grayscale_image, (0, 0), (int(CROPPING["left"] * width), height), (0, 0, 0), -1
+                    )
+                    cv2.rectangle(
+                        grayscale_image, (width - (int(CROPPING["right"] * width)), 0), (width, height),
+                        (0, 0, 0), -1
+                    )
+                    cv2.rectangle(
+                        grayscale_image, (0, 0), (width, int(CROPPING["top"] * height)), (0, 0, 0), -1
+                    )
 
                 pixels_sum = np.sum(grayscale_image_resized, 1)
                 max_pixels_pos = np.argmax(pixels_sum)
@@ -290,7 +288,7 @@ with picamera.PiCamera() as camera:
                     # and then move a certain amount forward so that the
                     # center of mass of the robot is over the intersection
                     time.sleep(
-                        (0.00162 * (grayscale_image_resized.shape[0] - max_pixels_pos))
+                        (0.00165 * (grayscale_image_resized.shape[0] - max_pixels_pos))
                         + 0.1
                     )
 
@@ -308,7 +306,7 @@ with picamera.PiCamera() as camera:
                         elif intersection_turns[intersection_turns_index] == RIGHT:
                             print("Turning Left for Intersection")
                             speed_separate = [-1.2, 1.2]
-                    time.sleep(0.475)
+                    time.sleep(0.35)
                     speed_separate = []
                     targetSpeed = 0
 

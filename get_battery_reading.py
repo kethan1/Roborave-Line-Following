@@ -31,12 +31,16 @@ if not TB.foundChip:
 TB.SetBatteryMonitoringLimits(11, 13)
 
 try:
+    # while True:
+    #     # TB.SetMotors(1)
+    #     TB.SetMotor1(1)
+    #     time.sleep(0.001)
+    #     TB.SetMotor2(1)
+    #     time.sleep(0.001)
+    #     print(TB.GetBatteryReading(), end="\r")
+    print(TB.GetBatteryReading())
+    TB.SetMotors(1)
     while True:
-        # TB.SetMotors(1)
-        TB.SetMotor1(1)
-        time.sleep(0.001)
-        TB.SetMotor2(1)
-        time.sleep(0.001)
         print(TB.GetBatteryReading(), end="\r")
 except KeyboardInterrupt:
     print(TB.GetBatteryReading())

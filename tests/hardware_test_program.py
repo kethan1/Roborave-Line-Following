@@ -348,6 +348,7 @@ def test_l298_motors() -> None:
     time.sleep(1)
     GPIO.output(L298N_PINS["FORWARD"], GPIO.LOW)
 
+
     if (
         input(
             "Did the vibration motor (connected to the L298N) move forward for 1 second? "
@@ -366,7 +367,7 @@ if not sys.argv[1:]:
     test_intersection()
     test_encoder()
     test_leds()
-    # test_l298_motors()
+    test_l298_motors()
 else:
     if "--motors" in sys.argv[1]:
         test_motors()
