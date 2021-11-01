@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # GPIO 25 - Encoder A for Motor1
+
 # GPIO 22 - Encoder B for Motor1
 # GPIO 24 - Encoder A for Motor2
 # GPIO 23 - Encoder B for Motor2
@@ -31,17 +32,7 @@ if not TB.foundChip:
 TB.SetBatteryMonitoringLimits(11, 13)
 
 try:
-    # while True:
-    #     # TB.SetMotors(1)
-    #     TB.SetMotor1(1)
-    #     time.sleep(0.001)
-    #     TB.SetMotor2(1)
-    #     time.sleep(0.001)
-    #     print(TB.GetBatteryReading(), end="\r")
-    print(TB.GetBatteryReading())
-    TB.SetMotors(1)
     while True:
         print(TB.GetBatteryReading(), end="\r")
 except KeyboardInterrupt:
-    print(TB.GetBatteryReading())
     TB.MotorsOff()

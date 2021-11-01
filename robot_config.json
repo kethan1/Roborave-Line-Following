@@ -53,6 +53,11 @@
         "right": 0.1,
         "top": 0.1
     },
+    "intersection_timings": {
+        "M": 0.00153,
+        "B": 0.16,
+        "turning_timing": 0.48
+    },
     "GRAYSCALE_THRESHOLD": 80,
     "BASE_SPEED": 0.5,
     "INTERSECTION_PORTION": 0.4,

@@ -67,6 +67,7 @@ LED_COLOR_COMBOS: Dict[str, Dict[str, int]] = robot_config["LED_COLOR_COMBOS"]
 CROPPING: Dict[str, Union[bool, int]] = robot_config["CROPPING"]
 L298N_PINS: Dict[str, int] = robot_config["L298N_PINS"]
 STOP_SWITCH: int = robot_config["STOP_SWITCH"]
+INTERSECTION_TIMING = robot_config["intersection_timings"]
 
 
 # Command line flags
@@ -106,6 +107,8 @@ LEFT, RIGHT = 0, 1
 
 finish, targetSpeed, towerFound = False, 0, False
 speed_separate = []
+manual_speed_control = []
+stop_flag = False
 intersection_turns = [RIGHT, LEFT, LEFT] * 10
 intersection_turns_index = 0
 rev_per_second = PID(
@@ -157,22 +160,24 @@ def set_speed():
         prevStepsRight, prevStepsLeft, prevTime = stepsRight, stepsLeft, cTime
 
         with lock:
-            if speed_separate:
+            if stop_flag:
+                speed_left = speed_right = 0
+            elif speed_separate:
                 speed_left = maintain_speed_PID_left.update(
                     speed_separate[0], current_speed_left
                 )
                 speed_right = maintain_speed_PID_right.update(
                     speed_separate[1], current_speed_right
                 )
-            elif targetSpeed != 0:
+            elif manual_speed_control:
+                speed_left, speed_right = manual_speed_control
+            else:
                 speed_left = maintain_speed_PID_left.update(
                     BASE_SPEED - targetSpeed, current_speed_left
                 )
                 speed_right = maintain_speed_PID_right.update(
                     BASE_SPEED + targetSpeed, current_speed_right
                 )
-            else:
-                speed_left = speed_right = 0
 
         # If the motors drop too low, they won"t move. This brings up the
         # power level to 0.15 if it is lower than that.
@@ -282,31 +287,33 @@ with picamera.PiCamera() as camera:
 
                     print("Going through the intersection")
 
+                    # end_program()
+
                     speed_separate = [1.2, 1.2]
                     # need a mx + b equation because we need to move a so that
                     # the start of the robot"s camera is at the intersection,
                     # and then move a certain amount forward so that the
                     # center of mass of the robot is over the intersection
                     time.sleep(
-                        (0.00165 * (grayscale_image_resized.shape[0] - max_pixels_pos))
-                        + 0.1
+                        (INTERSECTION_TIMING["M"] * (grayscale_image_resized.shape[0] - max_pixels_pos))
+                        + INTERSECTION_TIMING["B"]
                     )
 
                     if not towerFound:
                         if intersection_turns[intersection_turns_index] == RIGHT:
                             print("Turning Right for Intersection")
-                            speed_separate = [1.1, -1.1]
+                            speed_separate = [1, -1]
                         elif intersection_turns[intersection_turns_index] == LEFT:
                             print("Turning Left for Intersection")
-                            speed_separate = [-1.1, 1.1]
+                            speed_separate = [-1, 1]
                     else:
                         if intersection_turns[intersection_turns_index] == LEFT:
                             print("Turning Right for Intersection")
-                            speed_separate = [1.2, -1.2]
+                            speed_separate = [1, -1]
                         elif intersection_turns[intersection_turns_index] == RIGHT:
                             print("Turning Left for Intersection")
-                            speed_separate = [-1.2, 1.2]
-                    time.sleep(0.35)
+                            speed_separate = [-1, 1]
+                    time.sleep(INTERSECTION_TIMING["turning_timing"])
                     speed_separate = []
                     targetSpeed = 0
 
@@ -332,15 +339,18 @@ with picamera.PiCamera() as camera:
                         ) = scipy.ndimage.center_of_mass(cropped_image)
                         break
 
-                # Criterea for line lost
+                # Criteria for line lost
                 if not line_found or (np.sum(grayscale_image) < 50 * 255):
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["red"])
                     print("Line Lost")
-                    targetSpeed = 0
+                    # stop_flag = True
+                    # time.sleep(0.05)
+                    # stop_flag = False
                     # Moving backwards until line found again
-                    speed_separate = [-1, -1]
+                    manual_speed_control = [-0.4, -0.4]
                     time.sleep(0.2)
-                    speed_separate = []
+                    manual_speed_control = []
+                    # end_program()
 
                     stream.seek(0)
                     stream.truncate()
@@ -429,3 +439,4 @@ with picamera.PiCamera() as camera:
 
 if not finish:
     end_program()
+
