@@ -261,14 +261,25 @@ with picamera.PiCamera() as camera:
 
                 if CROPPING["do"]:
                     cv2.rectangle(
-                        grayscale_image, (0, 0), (int(CROPPING["left"] * width), height), (0, 0, 0), -1
+                        grayscale_image,
+                        (0, 0),
+                        (int(CROPPING["left"] * width), height),
+                        (0, 0, 0),
+                        -1,
                     )
                     cv2.rectangle(
-                        grayscale_image, (width - (int(CROPPING["right"] * width)), 0), (width, height),
-                        (0, 0, 0), -1
+                        grayscale_image,
+                        (width - (int(CROPPING["right"] * width)), 0),
+                        (width, height),
+                        (0, 0, 0),
+                        -1,
                     )
                     cv2.rectangle(
-                        grayscale_image, (0, 0), (width, int(CROPPING["top"] * height)), (0, 0, 0), -1
+                        grayscale_image,
+                        (0, 0),
+                        (width, int(CROPPING["top"] * height)),
+                        (0, 0, 0),
+                        -1,
                     )
 
                 pixels_sum = np.sum(grayscale_image_resized, 1)
@@ -295,7 +306,10 @@ with picamera.PiCamera() as camera:
                     # and then move a certain amount forward so that the
                     # center of mass of the robot is over the intersection
                     time.sleep(
-                        (INTERSECTION_TIMING["M"] * (grayscale_image_resized.shape[0] - max_pixels_pos))
+                        (
+                            INTERSECTION_TIMING["M"]
+                            * (grayscale_image_resized.shape[0] - max_pixels_pos)
+                        )
                         + INTERSECTION_TIMING["B"]
                     )
 
