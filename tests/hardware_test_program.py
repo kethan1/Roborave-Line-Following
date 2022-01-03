@@ -276,6 +276,8 @@ def test_encoder() -> None:
     TB1.SetMotor1(0)
     TB1.SetMotor2(0)
 
+    print(sum(speedsLeft[10:]) / len(speedsLeft[10:]))
+
     if not 1 < sum(speedsLeft[10:]) / len(speedsLeft[10:]) < 1.6:
         raise HardwareFailure("Left encoder is broken for going forward.")
     else:
@@ -361,6 +363,8 @@ def test_l298_motors() -> None:
 
 
 if not sys.argv[1:]:
+    if input("Press enter when you are ready, or q to stop: ") == "q":
+        sys.exit()
     test_motors()
     test_magnet_sensor()
     test_camera()
@@ -369,6 +373,8 @@ if not sys.argv[1:]:
     test_leds()
     test_l298_motors()
 else:
+    if input("Press enter when you are ready, or q to stop: ") == "q":
+        sys.exit()
     if "--motors" in sys.argv[1]:
         test_motors()
     if "--magnet" in sys.argv[1:]:
@@ -387,6 +393,13 @@ else:
         print(
             """
             '--motors': tests the motors
+            '--magnet': tests the hall effect sensor
+            '--camera': tests the camera
+            '--intersection': tests the interesection to code
+            '--encoder': tests the encoders
+            '--leds': tests the leds
+            '--l298-motors': tests the l298 motors
+            '--help': help
             """
         )
 
