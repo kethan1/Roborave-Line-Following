@@ -7,6 +7,7 @@
     },
     "HALL_EFFECT_PIN": 16,
     "STOP_SWITCH": 17,
+    "TIMING_SWITCH": 18,
     "P": 0.025,
     "I": 0,
     "D": 0.024,
@@ -36,6 +37,16 @@
             "green": 0,
             "blue": 100
         },
+        "purple": {
+            "red": 100,
+            "green": 0,
+            "blue": 100
+        },
+        "cyan": {
+            "red": 0,
+            "green": 100,
+            "blue": 100
+        },
         "white": {
             "red": 100,
             "green": 100,
@@ -53,12 +64,14 @@
         "right": 0.1,
         "top": 0.1
     },
-    "intersection_timings": {
+    "INTERSECTION_TIMINGS": {
         "M": 0.00153,
         "B": 0.16,
         "turning_timing": 0.48
     },
-    "GRAYSCALE_THRESHOLD": 80,
+    "ONE_BALL_UNLOADING": 5,
+    "MANY_BALL_UNLOADING": 25,
+    "GRAYSCALE_THRESHOLD": 85,
     "BASE_SPEED": 0.5,
     "INTERSECTION_PORTION": 0.4,
     "debug": true

@@ -331,6 +331,7 @@ def test_encoder() -> None:
 
 def test_leds() -> None:
     for color, combos in LED_COLOR_COMBOS.items():
+        print(color, combos)
         for pin_color, pin_brightness in combos.items():
             GPIO.output(LED_CONFIG[pin_color], int(not pin_brightness))
         if input(f"Is the RGB led showing the color {color}? ").lower() == "no":

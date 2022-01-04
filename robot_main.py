@@ -7,7 +7,7 @@ import time
 import json
 import math
 import threading
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 import cv2
 import numpy as np
@@ -64,10 +64,13 @@ BASE_SPEED: float = robot_config["BASE_SPEED"]
 INTERSECTION_PORTION: float = robot_config["INTERSECTION_PORTION"]
 LED_CONFIG: Dict[str, int] = robot_config["LED_CONFIG"]
 LED_COLOR_COMBOS: Dict[str, Dict[str, int]] = robot_config["LED_COLOR_COMBOS"]
-CROPPING: Dict[str, Union[bool, int]] = robot_config["CROPPING"]
+CROPPING: Dict[str, Union[bool, float]] = robot_config["CROPPING"]
 L298N_PINS: Dict[str, int] = robot_config["L298N_PINS"]
 STOP_SWITCH: int = robot_config["STOP_SWITCH"]
-INTERSECTION_TIMING = robot_config["intersection_timings"]
+TIMING_SWITCH: int = robot_config["TIMING_SWITCH"]
+INTERSECTION_TIMING: Dict[str, float] = robot_config["INTERSECTION_TIMINGS"]
+ONE_BALL_UNLOADING: int = robot_config["ONE_BALL_UNLOADING"]
+MANY_BALL_UNLOADING: int = robot_config["MANY_BALL_UNLOADING"]
 
 
 # Command line flags
@@ -99,17 +102,20 @@ GPIO.setup(pinlistOut, GPIO.OUT)
 GPIO.setup(pinlistIn, GPIO.IN)
 GPIO.setup(STOP_SWITCH, GPIO.IN, GPIO.PUD_DOWN)
 GPIO.add_event_detect(HALL_EFFECT_PIN, GPIO.FALLING)
-GPIO.add_event_detect(STOP_SWITCH, GPIO.RISING)
+GPIO.add_event_detect(STOP_SWITCH, GPIO.BOTH)
+GPIO.add_event_detect(TIMING_SWITCH, GPIO.BOTH)
 GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
 show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
 LEFT, RIGHT = 0, 1
 
 
-finish, targetSpeed, towerFound = False, 0, False
-speed_separate = []
-manual_speed_control = []
-stop_flag = False
-intersection_turns = [RIGHT, LEFT, LEFT] * 10
+finish = towerFound = False
+target_speed: int = 0
+ball_unloading_time: int = ONE_BALL_UNLOADING
+speed_separate: List[int] = []
+manual_speed_control: List[int] = []
+stop_flag: bool = False
+intersection_turns = [LEFT, RIGHT]
 intersection_turns_index = 0
 rev_per_second = PID(
     P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv"
@@ -137,7 +143,7 @@ def imshow_debug(image_to_show, title):
 # on the encoders. This allows the robot to run smoothly on many surfaces. This
 # function runs in a separate thread.
 def set_speed():
-    global targetSpeed
+    global target_speed
     prevStepsLeft = prevStepsRight = prevTime = 0
 
     lock = threading.RLock()
@@ -173,16 +179,16 @@ def set_speed():
                 speed_left, speed_right = manual_speed_control
             else:
                 speed_left = maintain_speed_PID_left.update(
-                    BASE_SPEED - targetSpeed, current_speed_left
+                    BASE_SPEED - target_speed, current_speed_left
                 )
                 speed_right = maintain_speed_PID_right.update(
-                    BASE_SPEED + targetSpeed, current_speed_right
+                    BASE_SPEED + target_speed, current_speed_right
                 )
 
         # If the motors drop too low, they won"t move. This brings up the
         # power level to 0.15 if it is lower than that.
         with lock:
-            if speed_separate or targetSpeed != 0:
+            if speed_separate or target_speed != 0:
                 speed_left = (
                     speed_left
                     if abs(speed_left) > 0.15
@@ -287,8 +293,6 @@ with picamera.PiCamera() as camera:
 
                     print("Going through the intersection")
 
-                    # end_program()
-
                     speed_separate = [1.2, 1.2]
                     # need a mx + b equation because we need to move a so that
                     # the start of the robot"s camera is at the intersection,
@@ -315,7 +319,7 @@ with picamera.PiCamera() as camera:
                             speed_separate = [-1, 1]
                     time.sleep(INTERSECTION_TIMING["turning_timing"])
                     speed_separate = []
-                    targetSpeed = 0
+                    target_speed = 0
 
                     intersection_turns_index += 1
                     if intersection_turns_index > len(intersection_turns) - 1:
@@ -343,9 +347,6 @@ with picamera.PiCamera() as camera:
                 if not line_found or (np.sum(grayscale_image) < 50 * 255):
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["red"])
                     print("Line Lost")
-                    # stop_flag = True
-                    # time.sleep(0.05)
-                    # stop_flag = False
                     # Moving backwards until line found again
                     manual_speed_control = [-0.4, -0.4]
                     time.sleep(0.2)
@@ -358,12 +359,12 @@ with picamera.PiCamera() as camera:
                 else:
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["green"])
 
-                targetSpeed_tmp = rev_per_second.update(width / 2, center_of_mass_x)
+                target_speed_tmp = rev_per_second.update(width / 2, center_of_mass_x)
                 with lock:
-                    targetSpeed = (
-                        targetSpeed_tmp
-                        if abs(targetSpeed_tmp) <= 1.4
-                        else math.copysign(1.4, targetSpeed_tmp)
+                    target_speed = (
+                        target_speed_tmp
+                        if abs(target_speed_tmp) <= 1.4
+                        else math.copysign(1.4, target_speed_tmp)
                     )
 
                 if not bl_wh:
@@ -406,9 +407,9 @@ with picamera.PiCamera() as camera:
                     intersection_turns.reverse()
                     intersection_turns_index = 0
                     print("Magnet detected")
-                    targetSpeed = 0
+                    target_speed = 0
                     GPIO.output(L298N_PINS["FORWARD"], GPIO.HIGH)
-                    time.sleep(5)
+                    time.sleep(ball_unloading_time)
                     GPIO.output(L298N_PINS["FORWARD"], GPIO.LOW)
                     speed_separate = [-1.2, -1.2]
                     time.sleep(0.5)
@@ -416,24 +417,34 @@ with picamera.PiCamera() as camera:
                     time.sleep(0.8)
                     speed_separate = []
 
+                if GPIO.event_detected(TIMING_SWITCH):
+                    unloading_time = MANY_BALL_UNLOADING \
+                        if unloading_time == ONE_BALL_UNLOADING \
+                        else MANY_BALL_UNLOADING
+
                 if GPIO.event_detected(STOP_SWITCH):
-                    if GPIO.input(STOP_SWITCH) == GPIO.HIGH:
-                        print("STOP SWITCH ON")
-                        towerFound = False
-                        targetSpeed = 0
-                        speed_separate = [-1.2, 1.2]
-                        time.sleep(0.8)
-                        speed_separate = []
-                        show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
-                        intersection_turns.reverse()
-                        time.sleep(10)
+                    print("Stop Switch Detected")
+                    towerFound = False
+                    target_speed = 0
+                    speed_separate = [-1.2, 1.2]
+                    time.sleep(0.95)
+                    speed_separate = []
+                    show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
+                    intersection_turns.reverse()
+                    intersection_turns_index = 0
 
-                        wait = GPIO.wait_for_edge(STOP_SWITCH, GPIO.BOTH)
+                    stop_flag = True
 
-                        if wait is None:
-                            print("Timeout for stop switch was trigged")
-                        else:
-                            pass
+                    wait = GPIO.wait_for_edge(STOP_SWITCH, GPIO.BOTH)
+                    time.sleep(1)
+
+                    print("Switch Press Detected, Continuing Program")
+                    GPIO.event_detected(STOP_SWITCH)
+                    if wait is None:
+                        print("Timeout for stop switch was trigged")
+                    else:
+                        pass
+                    stop_flag = False
         except KeyboardInterrupt:
             end_program()
 
