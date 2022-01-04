@@ -94,13 +94,14 @@ encoder_right = Encoder(*robot_config["Encoder_Right"])
 
 
 GPIO.setmode(GPIO.BCM)
-pinlistOut = list(LED_CONFIG.values()) + [*L298N_PINS.values()]
-pinlistIn = [HALL_EFFECT_PIN]
+pinlist_out = list(LED_CONFIG.values()) + [*L298N_PINS.values()]
+pinlist_in = [HALL_EFFECT_PIN]
+pinlist_in_pull_down = [TIMING_SWITCH, STOP_SWITCH]
 # Motor1 - Right
 # Motor2 - Left
-GPIO.setup(pinlistOut, GPIO.OUT)
-GPIO.setup(pinlistIn, GPIO.IN)
-GPIO.setup(STOP_SWITCH, GPIO.IN, GPIO.PUD_DOWN)
+GPIO.setup(pinlist_out, GPIO.OUT)
+GPIO.setup(pinlist_in, GPIO.IN)
+GPIO.setup(pinlist_in_pull_down, GPIO.IN, GPIO.PUD_DOWN)
 GPIO.add_event_detect(HALL_EFFECT_PIN, GPIO.FALLING)
 GPIO.add_event_detect(STOP_SWITCH, GPIO.BOTH)
 GPIO.add_event_detect(TIMING_SWITCH, GPIO.BOTH)
@@ -219,7 +220,6 @@ def end_program():
     finish = True
     cv2.destroyAllWindows()
     GPIO.output(list(LED_CONFIG.values()), GPIO.LOW)
-    # del hall_effect_sensor
     GPIO.cleanup()
     rev_per_second.close()
     set_speed_thread.join()
