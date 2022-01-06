@@ -81,6 +81,12 @@ encoder_left = Encoder(*robot_config["Encoder_Left"])
 encoder_right = Encoder(*robot_config["Encoder_Right"])
 
 
+def process_input(text):
+    text = text.lower()
+    return text not in ["no", "n", "didn't", "did not", "it didn't", "it did not",
+                        "fail", "bad"]
+
+
 def test_motors():
     TB1.SetMotor1(1)
     TB1.SetMotor2(1)
@@ -91,7 +97,7 @@ def test_motors():
     TB1.SetMotor1(0)
     TB1.SetMotor2(0)
 
-    if input("Did the motors move forward for 1 second? ").lower() == "no":
+    if process_input(input("Did the motors move forward for 1 second? ")):
         raise HardwareFailure("Motors Did Not Move Forward!")
     else:
         print("Motors moved forward! Test success!")
@@ -102,18 +108,23 @@ def test_motors():
     TB1.SetMotor1(0)
     TB1.SetMotor2(0)
 
-    if input("Did the motors move backward for 1 second? ").lower() == "no":
+    if process_input(input("Did the motors move backward for 1 second? ")):
         raise HardwareFailure("Motors Did Not Move Backward!")
     else:
         print("Motors moved backward! Test success!")
 
-    # TB2.SetMotor1(1)
-    # time.sleep(1)
-    # TB2.SetMotor1(0)
-    # if input("Did the vibration motor vibrate for 1 second? ").lower() == "no":
-    #     raise HardwareFailure("The vibration motors did not move backward!")
-    # else:
-    #     print("The vibration motors vibrated! Test success!")
+
+def test_l298n_motors() -> None:
+    GPIO.output(L298N_PINS["FORWARD"], GPIO.HIGH)
+    time.sleep(1)
+    GPIO.output(L298N_PINS["FORWARD"], GPIO.LOW)
+
+    if process_input(
+        input("Did the vibration motor (connected to the L298N) move forward for 1 second? ")
+    ):
+        raise HardwareFailure("Motors Did Not Move Forward!")
+    else:
+        print("Motors moved forward! Test success!")
 
 
 def test_magnet_sensor():
@@ -181,11 +192,10 @@ def test_camera():
 
             cv2.waitKey(0)
             cv2.destroyAllWindows()
-            if (
+            if process_input(
                 input(
                     "Do the images and the black and white images look good? "
-                ).lower()
-                == "no"
+                )
             ):
                 raise HardwareFailure(
                     "Camera images or black and white thresholding is not working"
@@ -266,8 +276,6 @@ def test_encoder() -> None:
         prevTime = cTime
         prevStepsLeft = stepsLeft
         prevStepsRight = stepsRight
-        # print(f"Left, Steps: {encoder_left.getSteps()}, Direction: {encoder_left.getDirection()}, Speed in rev/sec: {speedLeft}")
-        # print(f"Right, Steps: {encoder_right.getSteps()}, Direction: {encoder_right.getDirection()}, Speed in rev/sec: {speedRight}")
         time.sleep(0.01)
 
         speedsLeft.append(speedLeft)
@@ -308,8 +316,6 @@ def test_encoder() -> None:
         prevTime = cTime
         prevStepsLeft = stepsLeft
         prevStepsRight = stepsRight
-        # print(f"Left, Steps: {encoder_left.getSteps()}, Direction: {encoder_left.getDirection()}, Speed in rev/sec: {speedLeft}")
-        # print(f"Right, Steps: {encoder_right.getSteps()}, Direction: {encoder_right.getDirection()}, Speed in rev/sec: {speedRight}")
         time.sleep(0.01)
 
         speedsLeft.append(speedLeft)
@@ -334,50 +340,35 @@ def test_leds() -> None:
         print(color, combos)
         for pin_color, pin_brightness in combos.items():
             GPIO.output(LED_CONFIG[pin_color], int(not pin_brightness))
-        if input(f"Is the RGB led showing the color {color}? ").lower() == "no":
+        if process_input(input(f"Is the RGB led showing the color {color}? ")):
             raise HardwareFailure(f"The RGB led did not show the color {color}!")
         else:
             print(f"The RGB led is showing the color {color}!")
         GPIO.output(list(LED_CONFIG.values()), GPIO.LOW)
     GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
-    if input(f"Is the RGB led off? ").lower() == "no":
+    if process_input(input(f"Is the RGB led off? ")):
         raise HardwareFailure(f"The RGB led did not turn off.")
     else:
         print(f"The RGB led is off!")
-
-
-def test_l298_motors() -> None:
-    GPIO.output(L298N_PINS["FORWARD"], GPIO.HIGH)
-    time.sleep(1)
-    GPIO.output(L298N_PINS["FORWARD"], GPIO.LOW)
-
-
-    if (
-        input(
-            "Did the vibration motor (connected to the L298N) move forward for 1 second? "
-        ).lower()
-        == "no"
-    ):
-        raise HardwareFailure("Motors Did Not Move Forward!")
-    else:
-        print("Motors moved forward! Test success!")
 
 
 if not sys.argv[1:]:
     if input("Press enter when you are ready, or q to stop: ") == "q":
         sys.exit()
     test_motors()
+    test_l298n_motors()
     test_magnet_sensor()
     test_camera()
     test_intersection()
     test_encoder()
     test_leds()
-    test_l298_motors()
 else:
     if input("Press enter when you are ready, or q to stop: ") == "q":
         sys.exit()
     if "--motors" in sys.argv[1]:
         test_motors()
+    if "--l298n-motors" in sys.argv[1:]:
+        test_l298n_motors()
     if "--magnet" in sys.argv[1:]:
         test_magnet_sensor()
     if "--camera" in sys.argv[1:]:
@@ -388,8 +379,6 @@ else:
         test_encoder()
     if "--leds" in sys.argv[1:]:
         test_leds()
-    if "--l298-motors" in sys.argv[1:]:
-        test_l298_motors()
     if "--help" in sys.argv[1:]:
         print(
             """

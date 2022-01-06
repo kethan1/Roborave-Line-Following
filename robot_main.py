@@ -7,6 +7,7 @@ import time
 import json
 import math
 import threading
+import argparse
 from typing import Dict, Union, List
 
 import cv2
@@ -52,9 +53,6 @@ def show_color(led_pins: dict, color_dict: dict, on: bool = True):
 with open("robot_config.json") as robot_config_file:
     robot_config = json.load(robot_config_file)
 
-P_VALUE: float = robot_config["P"]
-I_VALUE: float = robot_config["I"]
-D_VALUE: float = robot_config["D"]
 HALL_EFFECT_PIN: int = robot_config["HALL_EFFECT_PIN"]
 MAINTAIN_SPEED_P: float = robot_config["MAINTAIN_SPEED_PID"]["P"]
 MAINTAIN_SPEED_I: float = robot_config["MAINTAIN_SPEED_PID"]["I"]
@@ -75,16 +73,31 @@ MANY_BALL_UNLOADING: int = robot_config["MANY_BALL_UNLOADING"]
 
 # Command line flags
 
-debug = False if "--prod" in sys.argv[1:] else robot_config["debug"]
-bl_wh = "--bl_wh" in sys.argv[1:]
-if "--P" in sys.argv[1:]:
-    P_VALUE = float(sys.argv[sys.argv.index("--P") + 1])
-if "--I" in sys.argv[1:]:
-    I_VALUE = float(sys.argv[sys.argv.index("--I") + 1])
-if "--D" in sys.argv[1:]:
-    D_VALUE = float(sys.argv[sys.argv.index("--D") + 1])
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--prod", help="production or not, if production does not show video",
+                    action="store_true", default=not robot_config["debug"])
+parser.add_argument("-bw", "--bl-wh", help="controls whether the display",
+                    action="store_true", default=False)
+parser.add_argument("-np", "--no-print", help="whether to print or not",
+                    action="store_true", default=False)
 
-if not debug and "--print-prod" in sys.argv[1:]:
+parser.add_argument("--P", help="controls the P term for the rev per second PID",
+                    type=float, default=robot_config["P"])
+parser.add_argument("--I", help="controls the I term for the rev per second PID",
+                    type=float, default=robot_config["I"])
+parser.add_argument("--D", help="controls the D term for the rev per second PID",
+                    type=float, default=robot_config["D"])
+
+args = parser.parse_args()
+
+
+DEBUG = not args.prod
+BL_WH = args.bl_wh
+P_VALUE = args.P
+I_VALUE = args.I
+D_VALUE = args.D
+
+if args.no_print:
     sys.stdout = None
 
 
@@ -116,10 +129,10 @@ ball_unloading_time: int = ONE_BALL_UNLOADING
 speed_separate: List[int] = []
 manual_speed_control: List[int] = []
 stop_flag: bool = False
-intersection_turns = [LEFT, RIGHT]
+intersection_turns = [LEFT if turn == "LEFT" else RIGHT for turn in robot_config["intersection_turns"]]
 intersection_turns_index = 0
 rev_per_second = PID(
-    P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=debug, file="rev_per_second.csv"
+    P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=DEBUG, file="rev_per_second.csv"
 )
 maintain_speed_PID_left = PID(
     P=MAINTAIN_SPEED_P,
@@ -136,8 +149,18 @@ maintain_speed_PID_right = PID(
 
 
 def imshow_debug(image_to_show, title):
-    if debug:
+    if DEBUG:
         cv2.imshow(image_to_show, title)
+
+
+def reverse_intersection_turns():
+    print("Reversing Intersection Turns")
+    if len(intersection_turns) > 1:
+        intersection_turns[0], intersection_turns[-1] = 1 - intersection_turns[-1], 1 - intersection_turns[0]
+    elif len(intersection_turns) > 0:
+        print(intersection_turns[0])
+        intersection_turns[0] = 1 - intersection_turns[0]
+        print(intersection_turns[0])
 
 
 # A seperate function that runs the PID that adjusts the motor speed depending
@@ -303,20 +326,12 @@ with picamera.PiCamera() as camera:
                         + INTERSECTION_TIMING["B"]
                     )
 
-                    if not towerFound:
-                        if intersection_turns[intersection_turns_index] == RIGHT:
-                            print("Turning Right for Intersection")
-                            speed_separate = [1, -1]
-                        elif intersection_turns[intersection_turns_index] == LEFT:
-                            print("Turning Left for Intersection")
-                            speed_separate = [-1, 1]
-                    else:
-                        if intersection_turns[intersection_turns_index] == LEFT:
-                            print("Turning Right for Intersection")
-                            speed_separate = [1, -1]
-                        elif intersection_turns[intersection_turns_index] == RIGHT:
-                            print("Turning Left for Intersection")
-                            speed_separate = [-1, 1]
+                    if intersection_turns[intersection_turns_index] == RIGHT:
+                        print("Turning Right for Intersection")
+                        speed_separate = [1, -1]
+                    elif intersection_turns[intersection_turns_index] == LEFT:
+                        print("Turning Left for Intersection")
+                        speed_separate = [-1, 1]
                     time.sleep(INTERSECTION_TIMING["turning_timing"])
                     speed_separate = []
                     target_speed = 0
@@ -367,7 +382,7 @@ with picamera.PiCamera() as camera:
                         else math.copysign(1.4, target_speed_tmp)
                     )
 
-                if not bl_wh:
+                if not BL_WH:
                     imshow_debug(
                         "Video Stream with Circle",
                         cv2.circle(
@@ -404,17 +419,20 @@ with picamera.PiCamera() as camera:
 
                 if GPIO.event_detected(HALL_EFFECT_PIN) and not towerFound:
                     towerFound = True
-                    intersection_turns.reverse()
+                    reverse_intersection_turns()
                     intersection_turns_index = 0
                     print("Magnet detected")
+                    stop_flag = True
                     target_speed = 0
+                    speed_separate = []
                     GPIO.output(L298N_PINS["FORWARD"], GPIO.HIGH)
                     time.sleep(ball_unloading_time)
                     GPIO.output(L298N_PINS["FORWARD"], GPIO.LOW)
+                    stop_flag = False
                     speed_separate = [-1.2, -1.2]
-                    time.sleep(0.5)
+                    time.sleep(0.6)
                     speed_separate = [-1.2, 1.2]
-                    time.sleep(0.8)
+                    time.sleep(0.95)
                     speed_separate = []
 
                 if GPIO.event_detected(TIMING_SWITCH):
@@ -430,7 +448,7 @@ with picamera.PiCamera() as camera:
                     time.sleep(0.95)
                     speed_separate = []
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
-                    intersection_turns.reverse()
+                    reverse_intersection_turns()
                     intersection_turns_index = 0
 
                     stop_flag = True

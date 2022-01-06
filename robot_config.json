@@ -8,9 +8,9 @@
     "HALL_EFFECT_PIN": 16,
     "STOP_SWITCH": 17,
     "TIMING_SWITCH": 18,
-    "P": 0.025,
+    "P": 0.03,
     "I": 0,
-    "D": 0.024,
+    "D": 0.034,
     "MAINTAIN_SPEED_PID": {
         "P": 2.0,
         "I": 0.025,
@@ -59,20 +59,21 @@
         }
     },
     "CROPPING": {
-        "do": false,
-        "left": 0.1,
-        "right": 0.1,
-        "top": 0.1
+        "do": true,
+        "left": 0,
+        "right": 0,
+        "top": 0.4
     },
     "INTERSECTION_TIMINGS": {
         "M": 0.00153,
         "B": 0.16,
         "turning_timing": 0.48
     },
+    "intersection_turns": ["RIGHT"],
     "ONE_BALL_UNLOADING": 5,
     "MANY_BALL_UNLOADING": 25,
     "GRAYSCALE_THRESHOLD": 70,
-    "BASE_SPEED": 0.4,
+    "BASE_SPEED": 0.5,
     "INTERSECTION_PORTION": 0.5,
     "debug": true
 }
