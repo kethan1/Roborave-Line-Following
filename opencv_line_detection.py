@@ -92,16 +92,25 @@ with picamera.PiCamera() as camera:
                 )
                 intersection_image = cv2.cvtColor(
                     cv2.resize(
-                        cv2.resize(black_and_white_image, (round(320 * 0.4), round(240 * 0.4))), (640, 480)
+                        cv2.resize(
+                            black_and_white_image, (round(320 * 0.4), round(240 * 0.4))
+                        ),
+                        (640, 480),
                     ),
-                    cv2.COLOR_GRAY2BGR
+                    cv2.COLOR_GRAY2BGR,
                 )
 
                 for row in range(0, 129):
                     row_pixel = round((row / 0.4) * 2)
                     for column in range(0, 97):
                         column_pixel = round((column / 0.4) * 2)
-                        intersection_image = cv2.circle(intersection_image, (row_pixel, column_pixel), 1, (255, 0, 0), -1)
+                        intersection_image = cv2.circle(
+                            intersection_image,
+                            (row_pixel, column_pixel),
+                            1,
+                            (255, 0, 0),
+                            -1,
+                        )
 
                 imshow_debug("Grayscale Image", grayscale_image)
                 imshow_debug("Black and White Image", black_and_white_image)

@@ -73,19 +73,46 @@ NUM_OF_INTERSECTIONS: int = robot_config["NUM_OF_INTERSECTIONS"]
 # Command line flags
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--prod", help="production or not, if production does not show video",
-                    action="store_true", default=not robot_config["debug"])
-parser.add_argument("-bw", "--bl-wh", help="controls whether the display",
-                    action="store_true", default=False)
-parser.add_argument("-np", "--no-print", help="whether to print or not",
-                    action="store_true", default=False)
+parser.add_argument(
+    "-p",
+    "--prod",
+    help="production or not, if production does not show video",
+    action="store_true",
+    default=not robot_config["debug"],
+)
+parser.add_argument(
+    "-bw",
+    "--bl-wh",
+    help="controls whether the display",
+    action="store_true",
+    default=False,
+)
+parser.add_argument(
+    "-np",
+    "--no-print",
+    help="whether to print or not",
+    action="store_true",
+    default=False,
+)
 
-parser.add_argument("--P", help="controls the P term for the rev per second PID",
-                    type=float, default=robot_config["P"])
-parser.add_argument("--I", help="controls the I term for the rev per second PID",
-                    type=float, default=robot_config["I"])
-parser.add_argument("--D", help="controls the D term for the rev per second PID",
-                    type=float, default=robot_config["D"])
+parser.add_argument(
+    "--P",
+    help="controls the P term for the rev per second PID",
+    type=float,
+    default=robot_config["P"],
+)
+parser.add_argument(
+    "--I",
+    help="controls the I term for the rev per second PID",
+    type=float,
+    default=robot_config["I"],
+)
+parser.add_argument(
+    "--D",
+    help="controls the D term for the rev per second PID",
+    type=float,
+    default=robot_config["D"],
+)
 
 args = parser.parse_args()
 
@@ -129,7 +156,9 @@ ball_unloading_time: int = ONE_BALL_UNLOADING
 speed_separate: List[int] = []
 manual_speed_control: List[int] = []
 stop_flag: bool = False
-intersection_turns = [LEFT if turn == "LEFT" else RIGHT for turn in robot_config["intersection_turns"]]
+intersection_turns = [
+    LEFT if turn == "LEFT" else RIGHT for turn in robot_config["intersection_turns"]
+]
 intersection_turns_index = 0
 rev_per_second = PID(
     P=P_VALUE, I=I_VALUE, D=D_VALUE, debug=DEBUG, file="rev_per_second.csv"
@@ -156,7 +185,10 @@ def imshow_debug(image_to_show, title):
 def reverse_intersection_turns():
     print("Reversing Intersection Turns")
     if len(intersection_turns) > 1:
-        intersection_turns[0], intersection_turns[-1] = 1 - intersection_turns[-1], 1 - intersection_turns[0]
+        intersection_turns[0], intersection_turns[-1] = (
+            1 - intersection_turns[-1],
+            1 - intersection_turns[0],
+        )
     elif len(intersection_turns) > 0:
         intersection_turns[0] = 1 - intersection_turns[0]
 
@@ -288,14 +320,25 @@ with picamera.PiCamera() as camera:
 
                 if CROPPING["do"]:
                     cv2.rectangle(
-                        grayscale_image, (0, 0), (int(CROPPING["left"] * width), height), (0, 0, 0), -1
+                        grayscale_image,
+                        (0, 0),
+                        (int(CROPPING["left"] * width), height),
+                        (0, 0, 0),
+                        -1,
                     )
                     cv2.rectangle(
-                        grayscale_image, (width - (int(CROPPING["right"] * width)), 0), (width, height),
-                        (0, 0, 0), -1
+                        grayscale_image,
+                        (width - (int(CROPPING["right"] * width)), 0),
+                        (width, height),
+                        (0, 0, 0),
+                        -1,
                     )
                     cv2.rectangle(
-                        grayscale_image, (0, 0), (width, int(CROPPING["top"] * height)), (0, 0, 0), -1
+                        grayscale_image,
+                        (0, 0),
+                        (width, int(CROPPING["top"] * height)),
+                        (0, 0, 0),
+                        -1,
                     )
 
                 pixels_sum = np.sum(grayscale_image_resized, 1) / 255
@@ -311,7 +354,8 @@ with picamera.PiCamera() as camera:
 
                 if (
                     grayscale_image_resized.shape[1] * INTERSECTION_PORTION
-                    <= max_pixels and intersection_turns_index < NUM_OF_INTERSECTIONS
+                    <= max_pixels
+                    and intersection_turns_index < NUM_OF_INTERSECTIONS
                 ):
                     if not trigger_stop_switch:
                         show_color(LED_CONFIG, LED_COLOR_COMBOS["yellow"])
@@ -328,7 +372,10 @@ with picamera.PiCamera() as camera:
                         # and then move a certain amount forward so that the
                         # robot's center of rotation is over the intersection
                         time.sleep(
-                            (INTERSECTION_TIMING["M"] * (grayscale_image_resized.shape[0] - max_pixels_pos))
+                            (
+                                INTERSECTION_TIMING["M"]
+                                * (grayscale_image_resized.shape[0] - max_pixels_pos)
+                            )
                             + INTERSECTION_TIMING["B"]
                         )
 
@@ -350,9 +397,15 @@ with picamera.PiCamera() as camera:
                     stream.truncate()
 
                     continue
-                elif max_pixels > grayscale_image_resized.shape[1] * 0.3 and intersection_turns_index >= NUM_OF_INTERSECTIONS:
+                elif (
+                    max_pixels > grayscale_image_resized.shape[1] * 0.3
+                    and intersection_turns_index >= NUM_OF_INTERSECTIONS
+                ):
                     print("Detected Start or End Intersection")
-                    trigger_stop_switch = intersection_turns_index == NUM_OF_INTERSECTIONS + 1 and tower_found
+                    trigger_stop_switch = (
+                        intersection_turns_index == NUM_OF_INTERSECTIONS + 1
+                        and tower_found
+                    )
                     stream.seek(0)
                     stream.truncate()
 
@@ -456,9 +509,11 @@ with picamera.PiCamera() as camera:
 
                 if GPIO.event_detected(TIMING_SWITCH) or trigger_stop_switch:
                     print("Changing unloading time")
-                    ball_unloading_time = MANY_BALL_UNLOADING \
-                        if ball_unloading_time == ONE_BALL_UNLOADING \
+                    ball_unloading_time = (
+                        MANY_BALL_UNLOADING
+                        if ball_unloading_time == ONE_BALL_UNLOADING
                         else MANY_BALL_UNLOADING
+                    )
 
                 # if GPIO.event_detected(STOP_SWITCH) or trigger_stop_switch:
                 if GPIO.event_detected(STOP_SWITCH):
