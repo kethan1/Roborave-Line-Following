@@ -82,6 +82,7 @@ encoder_right = Encoder(*robot_config["Encoder_Right"])
 
 
 def process_input(text):
+    print(text)
     text = text.lower()
     return text not in ["no", "n", "didn't", "did not", "it didn't", "it did not",
                         "fail", "bad"]
@@ -97,7 +98,7 @@ def test_motors():
     TB1.SetMotor1(0)
     TB1.SetMotor2(0)
 
-    if process_input(input("Did the motors move forward for 1 second? ")):
+    if not process_input(input("Did the motors move forward for 1 second? ")):
         raise HardwareFailure("Motors Did Not Move Forward!")
     else:
         print("Motors moved forward! Test success!")
@@ -108,7 +109,7 @@ def test_motors():
     TB1.SetMotor1(0)
     TB1.SetMotor2(0)
 
-    if process_input(input("Did the motors move backward for 1 second? ")):
+    if not process_input(input("Did the motors move backward for 1 second? ")):
         raise HardwareFailure("Motors Did Not Move Backward!")
     else:
         print("Motors moved backward! Test success!")
@@ -119,7 +120,7 @@ def test_l298n_motors() -> None:
     time.sleep(1)
     GPIO.output(L298N_PINS["FORWARD"], GPIO.LOW)
 
-    if process_input(
+    if not process_input(
         input("Did the vibration motor (connected to the L298N) move forward for 1 second? ")
     ):
         raise HardwareFailure("Motors Did Not Move Forward!")
@@ -192,7 +193,7 @@ def test_camera():
 
             cv2.waitKey(0)
             cv2.destroyAllWindows()
-            if process_input(
+            if not process_input(
                 input(
                     "Do the images and the black and white images look good? "
                 )
@@ -340,13 +341,13 @@ def test_leds() -> None:
         print(color, combos)
         for pin_color, pin_brightness in combos.items():
             GPIO.output(LED_CONFIG[pin_color], int(not pin_brightness))
-        if process_input(input(f"Is the RGB led showing the color {color}? ")):
+        if not process_input(input(f"Is the RGB led showing the color {color}? ")):
             raise HardwareFailure(f"The RGB led did not show the color {color}!")
         else:
             print(f"The RGB led is showing the color {color}!")
         GPIO.output(list(LED_CONFIG.values()), GPIO.LOW)
     GPIO.output(list(LED_CONFIG.values()), GPIO.HIGH)
-    if process_input(input(f"Is the RGB led off? ")):
+    if not process_input(input(f"Is the RGB led off? ")):
         raise HardwareFailure(f"The RGB led did not turn off.")
     else:
         print(f"The RGB led is off!")

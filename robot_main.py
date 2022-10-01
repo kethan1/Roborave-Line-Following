@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-# Importing modules
-
 import sys
 import time
 import json
@@ -69,6 +67,7 @@ TIMING_SWITCH: int = robot_config["TIMING_SWITCH"]
 INTERSECTION_TIMING: Dict[str, float] = robot_config["INTERSECTION_TIMINGS"]
 ONE_BALL_UNLOADING: int = robot_config["ONE_BALL_UNLOADING"]
 MANY_BALL_UNLOADING: int = robot_config["MANY_BALL_UNLOADING"]
+NUM_OF_INTERSECTIONS: int = robot_config["NUM_OF_INTERSECTIONS"]
 
 
 # Command line flags
@@ -123,7 +122,8 @@ show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
 LEFT, RIGHT = 0, 1
 
 
-finish = towerFound = False
+finish = tower_found = False
+trigger_stop_switch = False
 target_speed: int = 0
 ball_unloading_time: int = ONE_BALL_UNLOADING
 speed_separate: List[int] = []
@@ -158,9 +158,7 @@ def reverse_intersection_turns():
     if len(intersection_turns) > 1:
         intersection_turns[0], intersection_turns[-1] = 1 - intersection_turns[-1], 1 - intersection_turns[0]
     elif len(intersection_turns) > 0:
-        print(intersection_turns[0])
         intersection_turns[0] = 1 - intersection_turns[0]
-        print(intersection_turns[0])
 
 
 # A seperate function that runs the PID that adjusts the motor speed depending
@@ -300,48 +298,65 @@ with picamera.PiCamera() as camera:
                         grayscale_image, (0, 0), (width, int(CROPPING["top"] * height)), (0, 0, 0), -1
                     )
 
-                pixels_sum = np.sum(grayscale_image_resized, 1)
+                pixels_sum = np.sum(grayscale_image_resized, 1) / 255
                 max_pixels_pos = np.argmax(pixels_sum)
-                max_pixels = pixels_sum[max_pixels_pos] / 255
+                max_pixels = pixels_sum[max_pixels_pos]
+                # Detects if the intersection is thicker than normal
+                # (indicating that it was for the start of the end)
+                # Currently not used as it is not needed
+                # if (pixels_sum > 0.3).sum() > 25:
+                #     trigger_stop_switch = tower_found
+                #     print("Detected Start or End Intersection")
+                #     max_pixels = 0
 
                 if (
                     grayscale_image_resized.shape[1] * INTERSECTION_PORTION
-                    <= max_pixels
+                    <= max_pixels and intersection_turns_index < NUM_OF_INTERSECTIONS
                 ):
-                    show_color(LED_CONFIG, LED_COLOR_COMBOS["yellow"])
-                    print("Intersection spotted")
-                    print(
-                        f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}"
-                    )
+                    if not trigger_stop_switch:
+                        show_color(LED_CONFIG, LED_COLOR_COMBOS["yellow"])
+                        print("Intersection spotted")
+                        print(
+                            f"{max_pixels/grayscale_image_resized.shape[1]}, max_pixels_pos={max_pixels_pos}"
+                        )
 
-                    print("Going through the intersection")
+                        print("Going through the intersection")
 
-                    speed_separate = [1.2, 1.2]
-                    # need a mx + b equation because we need to move a so that
-                    # the start of the robot"s camera is at the intersection,
-                    # and then move a certain amount forward so that the
-                    # center of mass of the robot is over the intersection
-                    time.sleep(
-                        (INTERSECTION_TIMING["M"] * (grayscale_image_resized.shape[0] - max_pixels_pos))
-                        + INTERSECTION_TIMING["B"]
-                    )
+                        speed_separate = [1.2, 1.2]
+                        # need a mx + b equation because we need to move so that
+                        # the start of the robot's camera is at the intersection,
+                        # and then move a certain amount forward so that the
+                        # robot's center of rotation is over the intersection
+                        time.sleep(
+                            (INTERSECTION_TIMING["M"] * (grayscale_image_resized.shape[0] - max_pixels_pos))
+                            + INTERSECTION_TIMING["B"]
+                        )
 
-                    if intersection_turns[intersection_turns_index] == RIGHT:
-                        print("Turning Right for Intersection")
-                        speed_separate = [1, -1]
-                    elif intersection_turns[intersection_turns_index] == LEFT:
-                        print("Turning Left for Intersection")
-                        speed_separate = [-1, 1]
-                    time.sleep(INTERSECTION_TIMING["turning_timing"])
-                    speed_separate = []
-                    target_speed = 0
+                        if intersection_turns[intersection_turns_index] == RIGHT:
+                            print("Turning Right for Intersection")
+                            speed_separate = [1, -1]
+                        elif intersection_turns[intersection_turns_index] == LEFT:
+                            print("Turning Left for Intersection")
+                            speed_separate = [-1, 1]
+                        time.sleep(INTERSECTION_TIMING["turning_timing"])
+                        speed_separate = []
+                        target_speed = 0
 
-                    intersection_turns_index += 1
-                    if intersection_turns_index > len(intersection_turns) - 1:
-                        intersection_turns_index = len(intersection_turns) - 1
+                        intersection_turns_index += 1
+                        # if intersection_turns_index > len(intersection_turns) - 1:
+                        #     intersection_turns_index = len(intersection_turns) - 1
 
                     stream.seek(0)
                     stream.truncate()
+
+                    continue
+                elif max_pixels > grayscale_image_resized.shape[1] * 0.3 and intersection_turns_index >= NUM_OF_INTERSECTIONS:
+                    print("Detected Start or End Intersection")
+                    trigger_stop_switch = intersection_turns_index == NUM_OF_INTERSECTIONS + 1 and tower_found
+                    stream.seek(0)
+                    stream.truncate()
+
+                    continue
                 else:
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["green"])
 
@@ -364,9 +379,8 @@ with picamera.PiCamera() as camera:
                     print("Line Lost")
                     # Moving backwards until line found again
                     manual_speed_control = [-0.4, -0.4]
-                    time.sleep(0.2)
+                    time.sleep(0.3)
                     manual_speed_control = []
-                    # end_program()
 
                     stream.seek(0)
                     stream.truncate()
@@ -417,41 +431,44 @@ with picamera.PiCamera() as camera:
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
-                if GPIO.event_detected(HALL_EFFECT_PIN) and not towerFound:
-                    towerFound = True
-                    reverse_intersection_turns()
-                    intersection_turns_index = 0
+                if GPIO.event_detected(HALL_EFFECT_PIN) and not tower_found:
                     print("Magnet detected")
-                    stop_flag = True
-                    target_speed = 0
+                    tower_found = stop_flag = True
+                    reverse_intersection_turns()
+                    intersection_turns_index = target_speed = 0
                     speed_separate = []
+                    time.sleep(0.5)
                     GPIO.output(L298N_PINS["FORWARD"], GPIO.HIGH)
                     time.sleep(ball_unloading_time)
                     GPIO.output(L298N_PINS["FORWARD"], GPIO.LOW)
+                    if ball_unloading_time == MANY_BALL_UNLOADING:
+                        end_program()
                     stop_flag = False
-                    speed_separate = [-1.2, -1.2]
-                    time.sleep(0.6)
-                    speed_separate = [-1.2, 1.2]
-                    time.sleep(0.95)
-                    speed_separate = []
+                    manual_speed_control = [-0.9, -0.9]
+                    time.sleep(0.3)
+                    manual_speed_control = [-0.9, 0.9]
+                    time.sleep(1.25)
+                    manual_speed_control = []
+                    stop_flag = True
+                    time.sleep(0.2)
+                    GPIO.event_detected(STOP_SWITCH)
+                    stop_flag = False
 
-                if GPIO.event_detected(TIMING_SWITCH):
-                    unloading_time = MANY_BALL_UNLOADING \
-                        if unloading_time == ONE_BALL_UNLOADING \
+                if GPIO.event_detected(TIMING_SWITCH) or trigger_stop_switch:
+                    print("Changing unloading time")
+                    ball_unloading_time = MANY_BALL_UNLOADING \
+                        if ball_unloading_time == ONE_BALL_UNLOADING \
                         else MANY_BALL_UNLOADING
 
+                # if GPIO.event_detected(STOP_SWITCH) or trigger_stop_switch:
                 if GPIO.event_detected(STOP_SWITCH):
                     print("Stop Switch Detected")
-                    towerFound = False
-                    target_speed = 0
-                    speed_separate = [-1.2, 1.2]
-                    time.sleep(0.95)
-                    speed_separate = []
+                    trigger_stop_switch = tower_found = False
+                    stop_flag = True
+                    target_speed = intersection_turns_index = 0
+                    manual_speed_control = []
                     show_color(LED_CONFIG, LED_COLOR_COMBOS["blue"])
                     reverse_intersection_turns()
-                    intersection_turns_index = 0
-
-                    stop_flag = True
 
                     wait = GPIO.wait_for_edge(STOP_SWITCH, GPIO.BOTH)
                     time.sleep(1)

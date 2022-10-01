@@ -6,9 +6,9 @@
         "FORWARD": 12
     },
     "HALL_EFFECT_PIN": 16,
-    "STOP_SWITCH": 17,
+    "STOP_SWITCH": 4,
     "TIMING_SWITCH": 18,
-    "P": 0.03,
+    "P": 0.034,
     "I": 0,
     "D": 0.034,
     "MAINTAIN_SPEED_PID": {
@@ -65,12 +65,13 @@
         "top": 0.4
     },
     "INTERSECTION_TIMINGS": {
-        "M": 0.00153,
-        "B": 0.16,
-        "turning_timing": 0.48
+        "M": 0.0009,
+        "B": 0.13,
+        "turning_timing": 0.65
     },
+    "NUM_OF_INTERSECTIONS": 1,
     "intersection_turns": ["RIGHT"],
-    "ONE_BALL_UNLOADING": 5,
+    "ONE_BALL_UNLOADING": 1,
     "MANY_BALL_UNLOADING": 25,
     "GRAYSCALE_THRESHOLD": 70,
     "BASE_SPEED": 0.5,
